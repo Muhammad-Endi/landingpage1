@@ -2,7 +2,8 @@
 import {
   CheckCircle2, Zap, Wrench, ShoppingCart, Truck, Factory,
   Building2, Hammer, TrendingUp, Briefcase, Award, Clock,
-  Shield, HeadsetIcon, Smile, ArrowRight, Users, MessageCircle
+  Shield, HeadsetIcon, Smile, ArrowRight, Users, MessageCircle,
+  X, ChevronDown, Info
 } from 'lucide-vue-next'
 
 export default {
@@ -11,11 +12,13 @@ export default {
   components: {
     CheckCircle2, Zap, Wrench, ShoppingCart, Truck, Factory,
     Building2, Hammer, TrendingUp, Briefcase, Award, Clock,
-    Shield, HeadsetIcon, Smile, ArrowRight, Users, MessageCircle
+    Shield, HeadsetIcon, Smile, ArrowRight, Users, MessageCircle,
+    X, ChevronDown, Info
   },
 
   data() {
     return {
+      // --- Data Asli AboutView ---
       mainServices: [
         { icon: Zap, title: 'Rewinding Elektro Motor 1 Phase & 3 Phase' },
         { icon: Wrench, title: 'Service dan Maintenance Genset' },
@@ -35,7 +38,6 @@ export default {
         { value: '100+', label: 'PROYEK SELESAI', icon: Zap, color: 'text-yellow-500' },
       ],
 
-      // Data Client
       clients: [
         { icon: Factory, name: 'Industri & Pabrik' },
         { icon: Building2, name: 'Perusahaan Swasta' },
@@ -56,23 +58,139 @@ export default {
         { icon: HeadsetIcon, title: 'Konsultasi Gratis', description: 'Diskusi teknis gratis untuk menemukan solusi paling efisien dan hemat biaya.' }
       ],
 
-      whatsappNumber: '6281234567890'
+      whatsappNumber: '6289670308822',
+
+      // --- Data Baru untuk Modal Service Form ---
+      isServiceModalOpen: false,
+      tenantOptions: ['Pribadi', 'Perusahaan'],
+      serviceForm: {
+        name: '',
+        tenantType: '',
+        companyName: '',
+        phone: '',
+        location: '',
+        unitType: '',
+        issue: ''
+      },
+      serviceErrors: {
+        name: false,
+        tenantType: false,
+        companyName: false,
+        phone: false,
+        location: false,
+        unitType: false,
+        issue: false
+      }
     }
   },
 
   methods: {
+    // --- Method untuk Handle WhatsApp & Modal ---
     openWhatsApp(type) {
-      let text = '';
+      if (type === 'perbaiki') {
+        this.openServiceModal();
+        return;
+      }
+
       if (type === 'konsultasi') {
-        text = 'Halo Sinar Elektro, saya ingin berkonsultasi mengenai kebutuhan listrik/genset saya.';
-      } else if (type === 'perbaiki') {
-        text = 'Halo Sinar Elektro, saya membutuhkan layanan perbaikan/service untuk mesin saya.';
-      } else {
-        text = 'Halo Sinar Elektro, saya ingin bertanya mengenai layanan anda.';
+        window.open(`https://wa.me/${this.whatsappNumber}`, '_blank');
+        return;
+      }
+    },
+
+    openServiceModal() {
+      this.isServiceModalOpen = true;
+      document.body.style.overflow = 'hidden';
+    },
+
+    closeServiceModal() {
+      this.isServiceModalOpen = false;
+      document.body.style.overflow = '';
+      this.resetServiceForm();
+    },
+
+    resetServiceForm() {
+      this.serviceForm = {
+        name: '', tenantType: '', companyName: '',
+        phone: '', location: '', unitType: '', issue: ''
+      };
+      this.serviceErrors = {
+        name: false, tenantType: false, companyName: false,
+        phone: false, location: false, unitType: false, issue: false
+      };
+    },
+
+    clearAllErrors() {
+      Object.keys(this.serviceErrors).forEach(key => {
+        this.serviceErrors[key] = false;
+      });
+    },
+
+    handleGlobalClick(e) {
+      e.stopPropagation();
+      this.clearAllErrors();
+    },
+
+    sanitizePhoneInput(event) {
+      let value = event.target.value.replace(/\D/g, '');
+      this.serviceForm.phone = value;
+    },
+
+    validateServiceField(field) {
+      this.serviceErrors[field] = !this.serviceForm[field];
+    },
+
+    clearServiceError(field) {
+      if (this.serviceForm[field]) {
+        this.serviceErrors[field] = false;
+      }
+    },
+
+    submitService() {
+      // 1. Validasi manual semua field
+      this.validateServiceField('name');
+      this.validateServiceField('tenantType');
+      if (this.serviceForm.tenantType === 'Perusahaan') {
+        this.validateServiceField('companyName');
+      }
+      this.validateServiceField('phone');
+      this.validateServiceField('location');
+      this.validateServiceField('unitType');
+      this.validateServiceField('issue');
+
+      // 2. Cek apakah ada error
+      const hasErrors = Object.keys(this.serviceErrors).some(key => {
+        if (key === 'companyName' && this.serviceForm.tenantType !== 'Perusahaan') return false;
+        return this.serviceErrors[key];
+      });
+
+      if (hasErrors) return;
+
+      // 3. Format Pesan WhatsApp (UPDATE DISINI)
+      // Menggunakan \n untuk baris baru antara salam dan tujuan
+      let message = `Halo Sinar Elektro Sejahtera,\n\nSaya ingin konsultasi mengenai Service/Perbaikan Unit.\n\n`;
+      
+      message += `*Data Client:*\n`;
+      message += `Nama: ${this.serviceForm.name}\n`;
+      message += `Tipe: ${this.serviceForm.tenantType}\n`;
+      
+      if (this.serviceForm.tenantType === 'Perusahaan') {
+        message += `Perusahaan: ${this.serviceForm.companyName}\n`;
       }
       
-      const message = encodeURIComponent(text);
-      window.open(`https://wa.me/${this.whatsappNumber}?text=${message}`, '_blank');
+      message += `No. WA: ${this.serviceForm.phone}\n`;
+      message += `Lokasi: ${this.serviceForm.location}\n\n`;
+      message += `*Detail Unit & Kerusakan:*\n`;
+      message += `Nama Unit: ${this.serviceForm.unitType}\n`;
+      message += `Kendala: ${this.serviceForm.issue}\n\n`;
+      message += `Mohon informasi estimasi biaya dan jadwal pengecekan teknisi. Terima kasih.`;
+
+      // 4. Kirim ke WhatsApp
+      const url = `https://wa.me/${this.whatsappNumber}?text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank');
+      
+      // 5. Tutup Modal
+      this.closeServiceModal();
     }
   }
 }
@@ -164,41 +282,29 @@ export default {
 
     <section class="py-16 bg-gray-50 border-y border-gray-200 overflow-hidden">
       <div class="w-full">
-        
         <div class="text-center mb-10 px-4">
           <h2 class="text-[16px] font-bold text-slate-500 tracking-widest uppercase">
             DIPERCAYA OLEH BERBAGAI SEKTOR
           </h2>
         </div>
-        
         <div class="relative w-full mask-linear-fade">
-          
           <div class="flex w-max animate-marquee hover:[animation-play-state:paused] items-center py-4">
-            
             <div v-for="i in 3" :key="i" class="flex gap-6 px-3">
-              
               <div v-for="(client, index) in clients" :key="index" 
                 class="group relative flex items-center gap-5 p-5 min-w-[300px] bg-white border border-slate-200/80 rounded-2xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_25px_-5px_rgba(37,99,235,0.15)] hover:border-blue-300 transition-all duration-300 cursor-default">
-                
-                <div class="w-14 h-14 shrink-0 rounded-xl flex items-center justify-center transition-all duration-300
-                            bg-slate-50 text-slate-400 border border-slate-100
-                            group-hover:bg-blue-600 group-hover:text-white group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-blue-500/30">
+                <div class="w-14 h-14 shrink-0 rounded-xl flex items-center justify-center transition-all duration-300 bg-slate-50 text-slate-400 border border-slate-100 group-hover:bg-blue-600 group-hover:text-white group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-blue-500/30">
                   <component :is="client.icon" :size="26" stroke-width="1.5" />
                 </div>
-                
                 <div class="flex flex-col">
                    <h3 class="text-[16px] font-bold text-slate-700 group-hover:text-blue-700 transition-colors">
                       {{ client.name }}
                    </h3>
                 </div>
-
                 <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
                 </div>
               </div>
-
             </div>
-
           </div>
         </div>
       </div>
@@ -240,13 +346,118 @@ export default {
       </div>
     </section>
 
+    <teleport to="body">
+      <transition name="modal-fade">
+        <div 
+          v-if="isServiceModalOpen" 
+          class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          @click.self="closeServiceModal"
+        >
+          <div 
+            @click="handleGlobalClick"
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col relative max-h-[90vh]"
+          >
+            <button @click="closeServiceModal" class="absolute top-3 right-3 z-50 p-2 rounded-full bg-white/80 hover:bg-red-50 text-gray-500 hover:text-red-500 transition-all shadow-sm border border-transparent hover:border-red-100">
+              <X class="w-6 h-6" />
+            </button>
+
+            <div class="p-6 md:p-8 overflow-y-auto custom-scrollbar">
+              <div class="mb-6 border-b border-gray-100 pb-4">
+                <div class="flex items-center gap-2 mb-2">
+                  <div class="bg-red-100 p-2 rounded-lg text-red-600">
+                    <Wrench class="w-6 h-6" />
+                  </div>
+                  <h2 class="text-2xl font-bold text-gray-800">Form Service</h2>
+                </div>
+                <p class="text-gray-500 text-sm">Isi data dan keluhan kerusakan unit Anda</p>
+              </div>
+
+              <form @submit.prevent="submitService" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">
+                    {{ serviceForm.tenantType === 'Perusahaan' ? 'Nama PIC' : 'Nama Lengkap' }} <span class="text-red-500">*</span>
+                  </label>
+                  <input v-model="serviceForm.name" @input="validateServiceField('name')" @blur="clearServiceError('name')" type="text" placeholder="Nama Anda" :class="['w-full border rounded-lg px-4 py-2.5 focus:outline-none text-sm bg-gray-50 focus:bg-white', serviceErrors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500']">
+                  <p v-if="serviceErrors.name" class="text-red-500 text-xs mt-1">Nama wajib diisi</p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Client <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <select v-model="serviceForm.tenantType" @change="validateServiceField('tenantType')" @blur="clearServiceError('tenantType')" :class="['w-full border rounded-lg px-4 py-2.5 focus:outline-none text-sm appearance-none cursor-pointer bg-gray-50 focus:bg-white', serviceErrors.tenantType ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500']">
+                      <option disabled value="" hidden>Pilih Tipe</option>
+                      <option v-for="(type, index) in tenantOptions" :key="index" :value="type">{{ type }}</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400"><ChevronDown class="w-4 h-4" /></div>
+                  </div>
+                  <p v-if="serviceErrors.tenantType" class="text-red-500 text-xs mt-1">Wajib dipilih</p>
+                </div>
+
+                <div v-if="serviceForm.tenantType === 'Perusahaan'" class="animate-fade-in-down">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Nama Perusahaan <span class="text-red-500">*</span></label>
+                  <div class="relative">
+                    <input v-model="serviceForm.companyName" @input="validateServiceField('companyName')" @blur="clearServiceError('companyName')" type="text" placeholder="Contoh: PT. Sinar Elektro" :class="['w-full border rounded-lg px-4 py-2.5 pl-10 focus:outline-none text-sm bg-gray-50 focus:bg-white', serviceErrors.companyName ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500']">
+                    <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400"><Building2 class="w-4 h-4" /></div>
+                  </div>
+                  <p v-if="serviceErrors.companyName" class="text-red-500 text-xs mt-1">Nama perusahaan wajib diisi</p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">No. WhatsApp <span class="text-red-500">*</span></label>
+                  <input v-model="serviceForm.phone" @input="(e) => sanitizePhoneInput(e)" @blur="clearServiceError('phone')" type="tel" placeholder="0812xxxx" :class="['w-full border rounded-lg px-4 py-2.5 focus:outline-none text-sm bg-gray-50 focus:bg-white', serviceErrors.phone ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500']">
+                  <p v-if="serviceErrors.phone" class="text-red-500 text-xs mt-1">No. WhatsApp wajib diisi</p>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Nama Unit / Barang <span class="text-red-500">*</span></label>
+                  <input v-model="serviceForm.unitType" @input="validateServiceField('unitType')" @blur="clearServiceError('unitType')" type="text" placeholder="Contoh: Genset 10kVA" :class="['w-full border rounded-lg px-4 py-2.5 focus:outline-none text-sm bg-gray-50 focus:bg-white', serviceErrors.unitType ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500']">
+                  <p v-if="serviceErrors.unitType" class="text-red-500 text-xs mt-1">Jenis unit wajib diisi</p>
+                </div>
+
+                <div :class="serviceForm.tenantType === 'Perusahaan' ? '' : 'md:col-span-2'">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Alamat <span class="text-red-500">*</span></label>
+                  <input v-model="serviceForm.location" @input="validateServiceField('location')" @blur="clearServiceError('location')" type="text" placeholder="Alamat lengkap unit berada" :class="['w-full border rounded-lg px-4 py-2.5 focus:outline-none text-sm bg-gray-50 focus:bg-white', serviceErrors.location ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500']">
+                  <p v-if="serviceErrors.location" class="text-red-500 text-xs mt-1">Lokasi wajib diisi</p>
+                </div>
+
+                <div class="md:col-span-2">
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Kendala / Kerusakan <span class="text-red-500">*</span></label>
+                  <textarea v-model="serviceForm.issue" @input="validateServiceField('issue')" @blur="clearServiceError('issue')" rows="3" placeholder="Jelaskan kendala yang dialami..." :class="['w-full border rounded-lg px-4 py-2.5 focus:outline-none text-sm resize-none bg-gray-50 focus:bg-white', serviceErrors.issue ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500']"></textarea>
+                  <p v-if="serviceErrors.issue" class="text-red-500 text-xs mt-1">Keluhan wajib diisi</p>
+                </div>
+
+                <div class="md:col-span-2 space-y-4">
+                  <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-3">
+                    <Info class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div class="text-sm text-blue-800">
+                      <p class="font-medium">Konsultasi Service</p>
+                      <p class="mt-1 text-xs md:text-sm text-blue-700 leading-snug">
+                        Tim teknisi kami akan menganalisa keluhan Anda dan memberikan estimasi perbaikan via WhatsApp.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-95 flex justify-center items-center gap-2">
+                    Ajukan Service via WhatsApp
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </teleport>
+
   </div>
 </template>
 
 <style scoped>
+/* --- Style Marquee & Masking (Asli AboutView) --- */
 @keyframes marquee {
   0% { transform: translateX(0); }
-  100% { transform: translateX(-33.33%); } /* Bergerak 1/3 karena ada 3 duplikasi */
+  100% { transform: translateX(-33.33%); }
 }
 
 .animate-marquee {
@@ -258,9 +469,27 @@ export default {
   width: max-content;
 }
 
-/* Teknik Masking untuk efek fade out di kiri dan kanan */
 .mask-linear-fade {
   mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
   -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
 }
+
+/* --- Style Modal & Animasi Form (Dari Hero.vue) --- */
+.modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.3s ease; }
+.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
+
+@keyframes fadeInDown { 
+  from { opacity: 0; transform: translateY(-10px); } 
+  to { opacity: 1; transform: translateY(0); } 
+}
+
+.animate-fade-in-down { 
+  animation: fadeInDown 0.3s ease-out forwards; 
+}
+
+/* Custom Scrollbar untuk Modal */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 </style>

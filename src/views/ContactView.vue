@@ -296,7 +296,7 @@ export default {
                 </div>
                 <div>
                   <h4 class="font-bold text-gray-900 text-sm uppercase tracking-wide mb-1">Alamat Workshop</h4>
-                  <p class="text-gray-600 text-sm leading-relaxed">Jl. Industri Raya No. 123, Kawasan Industri, Surabaya 60291</p>
+                  <p class="text-gray-600 text-sm leading-relaxed">JL. Cendana II Gg. H.JANUR Jatimulyo Lampung Selatan, Lampung</p>
                 </div>
               </div>
               <hr class="border-gray-100" />
@@ -306,7 +306,7 @@ export default {
                 </div>
                 <div>
                   <h4 class="font-bold text-gray-900 text-sm uppercase tracking-wide mb-1">Telepon / WhatsApp</h4>
-                  <p class="text-gray-600 text-sm font-medium">+62 812-3456-7890</p>
+                  <p class="text-gray-600 text-sm font-medium">0853-8312-0656</p>
                 </div>
               </div>
               <hr class="border-gray-100" />
