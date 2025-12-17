@@ -316,7 +316,7 @@ export default {
                 </div>
                 <div>
                   <h4 class="font-bold text-gray-900 text-sm uppercase tracking-wide mb-1">Email Resmi</h4>
-                  <p class="text-gray-600 text-sm">info@sinarelektro.co.id</p>
+                  <p class="text-gray-600 text-sm">siswoyo.pulsarian@gmail.com</p>
                 </div>
               </div>
                <hr class="border-gray-100" />
@@ -354,7 +354,7 @@ export default {
             </div>
 
              <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden h-64 relative">
-               <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3957.692040654636!2d112.74834231477496!3d-7.275841994748366!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd7f960f647970d%3A0x868c6722d3b45524!2sSurabaya%2C%20Surabaya%20City%2C%20East%20Java!5e0!3m2!1sen!2sid!4v1625633456789!5m2!1sen!2sid" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" class="grayscale-[20%] hover:grayscale-0 transition-all duration-500"></iframe>
+               <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3972.4972535151687!2d105.27873157474339!3d-5.3407915946378095!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e40c5003a371e59%3A0x358535c0e42e44fa!2sBengkel%20Sinar%20Elektro%20Sejahtera!5e0!3m2!1sen!2sid!4v1765885656369!5m2!1sen!2sid" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
           </div>
 
