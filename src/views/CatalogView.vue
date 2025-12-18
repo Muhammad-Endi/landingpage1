@@ -331,24 +331,24 @@ export default {
 </script>
 
 <template>
-  <section class="relative flex flex-col justify-center items-center text-center py-20 mt-20 bg-[#1F65E2] overflow-hidden">
-    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
-    
+  <section class="relative flex flex-col justify-center items-center text-center py-18 md:py-20 mt-20 md:mt-20 bg-[#1F65E2] overflow-hidden">
+    <div class="absolute inset-0 opacity-10 bg-radial from-white via-transparent to-transparent"></div>
     <div class="relative z-10 flex flex-col items-center px-4 max-w-4xl">
-      <h1 class="font-bold mb-4 text-3xl md:text-[40px] leading-snug text-white drop-shadow-sm tracking-wide">
+      <h1 class="font-bold mb-4 text-3xl md:text-[40px] leading-tight md:leading-snug text-white drop-shadow-sm tracking-wide">
         Produk <span class="text-[#FCCC4D]">Terlengkap</span>
       </h1>
-      <p class="text-blue-50 text-base md:text-lg font-light leading-relaxed max-w-3xl">
+      <p class="text-blue-50 text-[16px] md:text-lg font-light leading-relaxed max-w-3xl opacity-90">
         Temukan berbagai pilihan mesin dan peralatan industri berkualitas tinggi. Tersedia opsi pembelian dan penyewaan sesuai kebutuhan Anda.
       </p>
     </div>
   </section>
 
-  <section class="bg-white border-b border-gray-200 py-7 relative z-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col lg:flex-row gap-6 items-start justify-between"> 
-        
-        <div class="relative w-full lg:w-[380px]">
+ <section class="bg-white border-b border-gray-200 py-7 relative z-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 lg:gap-6"> 
+      
+      <div class="contents lg:block lg:w-[380px]">
+        <div class="relative w-full order-1">
           <div class="absolute top-3.5 left-0 pl-4 flex items-center pointer-events-none">
             <Search class="h-5 w-5 text-gray-400" />
           </div>
@@ -358,53 +358,57 @@ export default {
             class="block w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#1F64E1] focus:border-[#1F64E1] transition duration-150 ease-in-out text-sm" 
             placeholder="Cari produk, brand, atau spesifikasi..." 
           />
-          <p class="mt-3 ml-1 text-[16px] font-medium text-[#4B5563] transition-all duration-300">
-             {{ searchResultText }}
-          </p>
         </div>
 
-        <div class="flex items-center gap-2 w-full lg:w-auto relative">
-            <div class="relative w-full lg:w-auto" ref="dropdownContainer">
-              <button 
-                @click="toggleDropdown"
-                class="flex items-center justify-between gap-3 w-full lg:w-[180px] px-4 py-3.5 rounded-md text-sm font-normal transition-all whitespace-nowrap border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1F64E1] focus:border-[#1F64E1]"
-              >
-                <div class="flex items-center gap-2 text-gray-500">
-                  <Filter class="w-4 h-4"/> 
-                  <span class="text-gray-700">{{ currentBrandLabel }}</span>
-                </div>
-                <ChevronDown class="w-4 h-4 text-gray-400" /> 
-              </button>
-
-              <transition
-                enter-active-class="transition ease-out duration-100"
-                enter-from-class="transform opacity-0 scale-95"
-                enter-to-class="transform opacity-100 scale-100"
-                leave-active-class="transition ease-in duration-75"
-                leave-from-class="transform opacity-100 scale-100"
-                leave-to-class="transform opacity-0 scale-95"
-              >
-                <div 
-                  v-if="isDropdownOpen"
-                  class="absolute right-0 mt-2 w-full rounded-md shadow-xl bg-white ring-1 ring-black ring-opacity-5 z-50 overflow-hidden"
-                >
-                  <div role="menu" aria-orientation="vertical">
-                    <button 
-                      v-for="option in brandOptions"
-                      :key="option.value"
-                      @click="selectBrand(option.value)"
-                      class="flex items-center w-full px-4 py-2 text-sm text-gray-700 transition-colors text-left hover:bg-[#1F64E1] hover:text-white"
-                    >
-                      {{ option.label }}
-                    </button>
-                  </div>
-                </div>
-              </transition>
-            </div>
-        </div>
+        <p class="order-3 mt-1 lg:mt-3 ml-1 text-[15px] lg:text-[16px] font-medium text-[#4B5563] transition-all duration-300">
+           {{ searchResultText }}
+        </p>
       </div>
+
+      <div class="flex items-center gap-2 w-full lg:w-auto relative order-2">
+          <div class="relative w-full lg:w-auto" ref="dropdownContainer">
+            <button 
+              @click="toggleDropdown"
+              class="flex items-center justify-between gap-3 w-full lg:w-[180px] px-4 py-3.5 rounded-md text-sm font-normal transition-all whitespace-nowrap border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1F64E1] focus:border-[#1F64E1]"
+            >
+              <div class="flex items-center gap-2 text-gray-500">
+                <Filter class="w-4 h-4"/> 
+                <span class="text-gray-700">{{ currentBrandLabel }}</span>
+              </div>
+              <ChevronDown class="w-4 h-4 text-gray-400" /> 
+            </button>
+
+            <transition
+              enter-active-class="transition ease-out duration-100"
+              enter-from-class="transform opacity-0 scale-95"
+              enter-to-class="transform opacity-100 scale-100"
+              leave-active-class="transition ease-in duration-75"
+              leave-from-class="transform opacity-100 scale-100"
+              leave-to-class="transform opacity-0 scale-95"
+            >
+              <div 
+                v-if="isDropdownOpen"
+                class="absolute left-0 lg:right-0 lg:left-auto mt-2 w-full rounded-md shadow-xl bg-white ring-1 ring-black ring-opacity-5 z-50 overflow-hidden"
+              >
+                <div role="menu" aria-orientation="vertical">
+                  <button 
+                    v-for="option in brandOptions"
+                    :key="option.value"
+                    @click="selectBrand(option.value)"
+                    style="-webkit-tap-highlight-color: transparent;"
+                    class="flex items-center w-full px-4 py-2 text-sm text-gray-700 text-left bg-white transition-all duration-75 select-none touch-manipulation hover:bg-[#1F64E1] hover:text-white active:bg-[#1F64E1] active:text-white outline-none"
+                  >
+                    {{ option.label }}
+                  </button>
+                </div>
+              </div>
+            </transition>
+          </div>
+      </div>
+
     </div>
-  </section>
+  </div>
+</section>
 
   <section id="proyek" class="pt-12 pb-20 bg-gray-50 min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -435,23 +439,23 @@ export default {
               :key="project.id" 
               class="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-200 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
             >
-              <div class="relative aspect-[4/3] overflow-hidden bg-gray-100">
+              <div class="relative aspect-4/3 overflow-hidden bg-gray-100">
                 <img
                   :src="project.image"
                   :alt="project.title"
                   class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out"
                 />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60"></div>
+                <div class="absolute inset-0 bg-linear-to-t from-black/50 to-transparent opacity-60"></div>
               </div>
 
-              <div class="p-5 flex flex-col flex-grow">
+             <div class="p-5 flex flex-col grow">
                 <h3 
                   :class="['text-[16px] font-bold text-gray-900 mb-3 transition-colors leading-snug', activeTheme.titleHover]"
                 >
                   {{ project.title }}
                 </h3>
 
-                <div class="space-y-2 mb-6 flex-grow">
+                <div class="space-y-2 mb-6 grow">
                   <div
                     v-for="(spec, idx) in project.specs"
                     :key="idx"
@@ -509,40 +513,41 @@ export default {
     </div>
   </section>
 
-  <section class="py-24 bg-gradient-to-r from-[#F0F9FF] to-[#FFFBF0] border-t border-blue-50/50 relative">
-    <div class="max-w-4xl mx-auto px-4 relative z-10 text-center">
-      <h2 class="text-3xl md:text-[32px] font-extrabold text-[#0F172A] mb-4 tracking-tight">
-        Butuh Genset untuk Operasional Bisnis Anda?
-      </h2>
-      <p class="text-gray-500 text-lg mb-10 max-w-xl mx-auto font-normal leading-relaxed">
-        Dapatkan genset siap pakai dengan performa maksimal untuk bisnis Anda. Konsultasi gratis, respon cepat, dan penawaran harga terbaik.
-      </p>
+  <section class="py-16 md:py-24 bg-linear-to-r from-[#F0F9FF] to-[#FFFBF0] border-t border-blue-50/50 relative">
+  <div class="max-w-4xl mx-auto px-4 relative z-10 text-center">
+    
+    <h2 class="text-2xl md:text-[32px] font-extrabold text-[#0F172A] mb-4 tracking-tight leading-tight">
+      Butuh Genset untuk Operasional Bisnis Anda?
+    </h2>
 
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-        <button 
-          @click="contactWhatsApp"
-          class="w-full sm:w-auto px-8 py-3.5 bg-white text-orange-500 font-bold rounded-xl shadow-[0_4px_10px_rgba(0,0,0,0.03)] border border-gray-100 hover:shadow-md transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <MessageCircle class="w-5 h-5" />
-          Tanyakan
-        </button>
-        
-        <button 
-          @click="openRentalModal()" 
-          class="w-full sm:w-auto px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <ShoppingBag class="w-5 h-5" />
-          Sewa Genset
-        </button>
-      </div>
+    <p class="text-gray-500 text-base md:text-lg mb-10 max-w-xl mx-auto font-normal leading-relaxed">
+      Dapatkan genset siap pakai dengan performa maksimal untuk bisnis Anda. Konsultasi gratis, respon cepat, dan penawaran harga terbaik.
+    </p>
+
+    <div class="flex flex-row items-center justify-center gap-3 md:gap-4">
+      <button 
+        @click="contactWhatsApp"
+        class="flex-1 sm:flex-none px-4 md:px-8 py-3.5 bg-white text-orange-500 font-bold rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer text-[14px] md:text-base"
+      >
+        <MessageCircle class="w-4 h-4 md:w-5 md:h-5" />
+        <span>Tanyakan</span>
+      </button>
+      
+      <button 
+        @click="openRentalModal()" 
+        class="flex-1 sm:flex-none px-4 md:px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer text-[14px] md:text-base"
+      >
+        <ShoppingBag class="w-4 h-4 md:w-5 md:h-5" />
+        <span>Sewa Genset</span>
+      </button>
     </div>
-  </section>
-
+  </div>
+</section>
   <teleport to="body">
     <transition name="modal-fade">
       <div 
         v-if="isRentalModalOpen" 
-        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        class="fixed inset-0 z-9999 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
         @click.self="closeRentalModal"
       >
         <div 
@@ -654,7 +659,7 @@ export default {
               </div>
 
               <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-3 mt-2">
-                <Info class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <Info class="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
                 <div class="text-sm text-blue-800">
                   <p class="font-medium">Informasi Penting</p>
                   <p class="mt-1 text-xs md:text-sm text-blue-700 leading-snug">Data ini akan diteruskan ke WhatsApp untuk <strong>konsultasi lebih lanjut</strong> dan mendapatkan <strong>penawaran harga terbaik</strong> dari tim kami.</p>
@@ -669,13 +674,13 @@ export default {
           </div>
 
           <div class="w-full md:w-1/2 bg-gray-50 border-t md:border-t-0 md:border-l border-gray-200 p-6 md:p-8 flex flex-col h-full overflow-hidden min-h-0">
-            <div class="flex items-center mb-4 pb-2 border-b border-gray-200/60 flex-shrink-0">
+            <div class="flex items-center mb-4 pb-2 border-b border-gray-200/60 shrink-0">
               <h3 class="font-bold text-gray-800 text-lg">Pilih Unit Genset</h3>
             </div>
             
             <div class="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar relative min-h-0" @scroll="handleModalScroll">
               <div v-for="product in visibleProducts" :key="product.id" class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex gap-3 items-center group product-item">
-                <div class="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-100">
+                <div class="w-20 h-20 shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-100">
                   <img :src="product.image" :alt="product.name" class="w-full h-full object-cover" />
                 </div>
                 <div class="flex-1">

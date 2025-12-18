@@ -133,7 +133,7 @@ export default {
   <div class="w-full bg-gray-50 min-h-screen">
     
     <section class="relative flex flex-col items-center justify-center text-center py-20 mt-20 bg-[#1F65E2] overflow-hidden">
-      <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
+      <div class="absolute inset-0 opacity-10 bg-radial from-white via-transparent to-transparent"></div>
       <div class="relative z-10 container mx-auto px-4 flex flex-col items-center max-w-4xl">
         <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm mb-6">
           <span class="relative flex h-3 w-3">
@@ -331,7 +331,12 @@ export default {
               </div>
             </div>
 
-            <div v-motion :initial="{ opacity: 0, scale: 0.9 }" :enter="{ opacity: 1, scale: 1, transition: { duration: 0.5, delay: 0.4 } }" class="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden group">
+            <div
+                v-motion
+                  :initial="{ opacity: 0, scale: 0.9 }"
+                  :enter="{ opacity: 1, scale: 1, transition: { duration: 0.5, delay: 0.4 } }"
+                  class="bg-linear-to-br from-gray-900 via-blue-900 to-gray-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden group">
+
               <div class="absolute -right-6 -top-6 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl group-hover:bg-blue-500/30 transition-all duration-500"></div>
               <div class="relative z-10">
                 <div class="flex justify-between items-start mb-4">
@@ -346,7 +351,10 @@ export default {
                 </div>
                 <p class="text-gray-300 text-sm mb-6 leading-relaxed">Mesin breakdown tiba-tiba? Tim teknisi emergency kami siap meluncur ke lokasi Anda.</p>
                 
-                <a href="https://wa.me/6289670308822" target="_blank" class="block w-full bg-white text-blue-900 font-bold text-center py-3 rounded-lg hover:bg-blue-50 transition-colors shadow-lg flex items-center justify-center gap-2 duration-300">
+                <a
+                  href="https://wa.me/6289670308822"
+                  target="_blank"
+                  class="w-full bg-white text-blue-900 font-bold text-center py-3 rounded-lg hover:bg-blue-50 transition-colors shadow-lg flex items-center justify-center gap-2 duration-300">
                   <Phone size="18" class="text-blue-600" /> Hubungi Emergency
                 </a>
 

@@ -77,15 +77,15 @@ export default {
 </script>
 
 <template>
-  <section id="proyek" class="py-24 bg-white overflow-hidden">
+  <section id="proyek" class="py-12 sm:py-24 bg-white overflow-hidden">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-      <div class="text-center mb-16 relative">
-         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-blue-100 rounded-full blur-3xl opacity-50 -z-10"></div>
-        <h2 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">
+      <div class="text-center mb-10 sm:mb-16 relative">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-blue-100 rounded-full blur-3xl opacity-50 -z-10"></div>
+        <h2 class="text-2xl sm:text-4xl font-extrabold text-gray-900 mb-3 sm:mb-4 tracking-tight">
           Rekam Jejak <span class="text-blue-600">Proyek Kami</span>
         </h2>
-        <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+        <p class="text-sm sm:text-lg text-gray-600 max-w-2xl mx-auto px-2">
           Kepercayaan industri yang telah kami bangun melalui hasil kerja berkualitas.
         </p>
       </div>
@@ -93,7 +93,7 @@ export default {
       <div class="relative mb-12">
         <transition-group 
             tag="div" 
-            class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
+            class="grid gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4"
             enter-active-class="transition duration-500 ease-out"
             enter-from-class="opacity-0 translate-y-8"
             enter-to-class="opacity-100 translate-y-0"
@@ -112,19 +112,19 @@ export default {
               <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
             </div>
 
-            <div class="p-5 flex flex-col flex-grow bg-white relative z-20">
-              <h3 class="font-bold text-[17px] mb-4 leading-snug text-gray-900 line-clamp-2 transition-colors group-hover:text-blue-600">
+            <div class="p-4 sm:p-5 flex flex-col flex-grow bg-white relative z-20">
+              <h3 class="font-bold text-[16px] sm:text-[17px] mb-4 leading-snug text-gray-900 line-clamp-2 transition-colors group-hover:text-blue-600">
                 {{ project.title }}
               </h3>
 
-              <div class="space-y-2 mb-0 flex-grow">
-                <div class="flex items-center justify-between text-xs border-b border-gray-50 pb-1.5 last:border-0">
-                  <span class="text-gray-500 flex items-center gap-1.5"><Gauge size="13" class="text-blue-400"/> Kapasitas</span>
-                  <span class="font-semibold text-gray-700">{{ project.capacity }}</span>
+              <div class="space-y-2.5 mb-0 flex-grow">
+                <div class="flex items-center justify-between text-[11px] sm:text-xs border-b border-gray-50 pb-2 last:border-0">
+                  <span class="text-gray-500 flex items-center gap-1.5"><Gauge size="13" class="text-blue-400 font-medium"/> Kapasitas</span>
+                  <span class="font-bold text-gray-700 text-right ml-2">{{ project.capacity }}</span>
                 </div>
-                <div class="flex items-center justify-between text-xs border-b border-gray-50 pb-1.5 last:border-0">
-                  <span class="text-gray-500 flex items-center gap-1.5"><MapPin size="13" class="text-red-400"/> Lokasi</span>
-                  <span class="font-semibold text-gray-700">{{ project.location }}</span>
+                <div class="flex items-center justify-between text-[11px] sm:text-xs border-b border-gray-50 pb-2 last:border-0">
+                  <span class="text-gray-500 flex items-center gap-1.5"><MapPin size="13" class="text-red-400 font-medium"/> Lokasi</span>
+                  <span class="font-bold text-gray-700 text-right ml-2">{{ project.location }}</span>
                 </div>
               </div>
             </div>
@@ -132,10 +132,10 @@ export default {
         </transition-group>
       </div>
 
-      <div class="mt-10 flex flex-col items-center justify-center gap-6">
+      <div class="mt-8 sm:mt-10 flex flex-col items-center justify-center">
         <router-link 
           to="/projects" 
-          class="group inline-flex items-center gap-2 text-base font-medium text-gray-500 transition-colors hover:text-blue-600"
+          class="group inline-flex items-center gap-2 text-base font-bold text-gray-500 transition-colors hover:text-blue-600"
         >
           <span class="relative">
             Lihat Proyek Lengkap
@@ -144,6 +144,6 @@ export default {
           <ArrowRight size="18" class="transition-transform duration-300 group-hover:translate-x-1"/>
         </router-link>
       </div>
-      </div>
+    </div>
   </section>
 </template>

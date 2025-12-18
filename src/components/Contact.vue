@@ -44,25 +44,25 @@ export default {
         {
           icon: MapPin,
           title: 'Alamat Workshop',
-          content: 'Jl. Industri Raya No. 123, Kawasan Industri, Surabaya 60291',
+          content: 'JL. Cendana II Gg. H.JANUR Jatimulyo Lampung Selatan, Lampung',
           color: 'bg-blue-600'
         },
         {
           icon: Phone,
           title: 'Telepon / WhatsApp',
-          content: '+62 812-3456-7890\n(031) 8765-432',
+          content: '0853-8312-0656',
           color: 'bg-green-600'
         },
         {
           icon: Mail,
           title: 'Email Resmi',
-          content: 'info@sinarelektro.co.id',
+          content: 'siswoyo.pulsarian@gmail.com',
           color: 'bg-red-600'
         },
         {
           icon: Clock,
           title: 'Jam Operasional',
-          content: 'Senin - Sabtu: 08.00 - 17.00 WIB\nMinggu: Dengan Perjanjian',
+          content: 'Senin - Sabtu: 08.00 - 17.00 WIB',
           color: 'bg-purple-600'
         },
       ],
@@ -194,8 +194,7 @@ export default {
           :enter="{ opacity: 1, y: 0, transition: { duration: 0.6 } }"
         >
           <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 relative">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
-
+            <div class="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-500 to-indigo-600"></div>
             <div class="p-8 md:p-10">
               <div class="flex items-center space-x-3 mb-8">
                 <div class="p-3 bg-blue-50 rounded-lg text-blue-600">
@@ -410,8 +409,7 @@ export default {
             v-motion
             :initial="{ opacity: 0, scale: 0.9 }"
             :enter="{ opacity: 1, scale: 1, transition: { duration: 0.5, delay: 0.4 } }"
-            class="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden group"
-          >
+            class="bg-linear-to-br from-gray-900 via-blue-900 to-gray-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden group">
             <div class="absolute -right-6 -top-6 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl group-hover:bg-blue-500/30 transition-all duration-500"></div>
             <div class="relative z-10">
               <div class="flex justify-between items-start mb-4">
@@ -430,7 +428,8 @@ export default {
                 Mesin breakdown tiba-tiba? Tim teknisi emergency kami siap meluncur ke lokasi Anda.
               </p>
               
-              <a href="https://wa.me/6289670308822" target="_blank" class="block w-full bg-white text-blue-900 font-bold text-center py-3 rounded-lg hover:bg-blue-50 transition-colors shadow-lg flex items-center justify-center gap-2 duration-300">
+              <a href="https://wa.me/6289670308822" target="_blank"
+                class="w-full bg-white text-blue-900 font-bold text-center py-3 rounded-lg hover:bg-blue-50 transition-colors shadow-lg flex items-center justify-center gap-2 duration-300">
                 <Phone size="18" class="text-blue-600" />
                 Hubungi Emergency
               </a>
@@ -445,7 +444,7 @@ export default {
             class="bg-white p-2 rounded-2xl shadow-lg border border-gray-100 h-[280px]"
           >
             <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3957.706775986873!2d112.7237893147741!3d-7.276435994747443!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd7fbf8381ac47f%3A0x3027a76e352a1cf!2sSurabaya!5e0!3m2!1sid!2sid!4v1626075924567!5m2!1sid!2sid" 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3972.4972535151687!2d105.27873157474339!3d-5.3407915946378095!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e40c5003a371e59%3A0x358535c0e42e44fa!2sBengkel%20Sinar%20Elektro%20Sejahtera!5e0!3m2!1sen!2sid!4v1765885656369!5m2!1sen!2sid" 
               width="100%" 
               height="100%" 
               style="border:0; border-radius: 0.75rem;" 

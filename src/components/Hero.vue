@@ -28,6 +28,9 @@ export default {
     const router = useRouter()
     const currentSlide = ref(0)
     
+    // --- 0. LOGIKA FEEDBACK KLIK (BARU) ---
+    const activeServiceIndex = ref(null)
+
     // --- 1. LOGIKA RENTAL ---
     const isRentalModalOpen = ref(false)
     const selectedProductsRef = ref(null)
@@ -101,7 +104,6 @@ export default {
       }
     }
 
-    // --- HELPER UNTUK CLEAR ERROR SAAT BLUR ---
     const clearRentalError = (field) => { rentalErrors.value[field] = false }
     const clearServiceError = (field) => { serviceErrors.value[field] = false }
 
@@ -165,7 +167,6 @@ export default {
       e.target.value = value
     }
 
-    // --- LOGIC LAINNYA ---
     const toggleCustomRequest = () => { if(rentalForm.value.isCustomRequest) rentalErrors.value.selectedProducts = false }
     
     const toggleProductSelection = (product) => {
@@ -184,88 +185,66 @@ export default {
 
     const isProductSelected = (productId) => rentalForm.value.selectedProducts.some(p => p.id === productId)
 
-    // --- SUBMIT RENTAL (UPDATED LOGIC) ---
     const submitRental = () => {
-      // 1. VALIDASI
       let hasError = false
       validateRentalField('selectedProducts')
       if(rentalErrors.value.selectedProducts) hasError = true
-
       const fields = ['name', 'phone', 'tenantType', 'duration', 'location', 'notes']
       fields.forEach(field => {
         validateRentalField(field)
         if(rentalErrors.value[field]) hasError = true
       })
-
       if (rentalForm.value.tenantType === 'Perusahaan') {
         validateRentalField('companyName')
         if(rentalErrors.value.companyName) hasError = true
       }
-
       if (hasError) return
 
-      // 2. PENYUSUNAN LIST PRODUK
       let productListText = ''
       const hasProduct = rentalForm.value.selectedProducts.length > 0
       const isChecked = rentalForm.value.isCustomRequest
-
       if (hasProduct) {
         rentalForm.value.selectedProducts.forEach((product, index) => {
           productListText += `${index + 1}. ${product.name} (${product.price} / bln)\n`
         })
       } else if (isChecked) {
-          // --- TEKS TELAH DIUBAH DI SINI ---
           productListText = "_Saya belum memilih unit dan membutuhkan konsultasi/rekomendasi daya yang tepat._"
       }
 
-      // 3. LOGIKA KALIMAT PENUTUP
-      // Default (Cuma Pilih Produk / Cuma Ceklis)
       let closingSentence = "Mohon informasinya lebih lanjut untuk ketersediaan dan harga final. Terima kasih."
-
-      // SPESIAL: Jika Pilih Produk DAN Ceklis Bingung (Butuh Saran Teknis)
       if (hasProduct && isChecked) {
         closingSentence = "Mohon info ketersediaan dan saran teknis mengenai dayanya. Terima kasih."
       }
 
-      // 4. KIRIM PESAN
-      const messageTemplate = `Halo Sinar Elektro Sejahtera, \n\nSaya ingin konsultasi sewa unit genset.\n\n*DATA PENYEWA*\nNama Lengkap: ${rentalForm.value.name}\nTipe Penyewa: ${rentalForm.value.tenantType}\n${rentalForm.value.tenantType === 'Perusahaan' ? `Nama Perusahaan: ${rentalForm.value.companyName}\n` : ''}No. WhatsApp: ${rentalForm.value.phone}\nDurasi Sewa: ${rentalForm.value.duration}\nLokasi: ${rentalForm.value.location}\n\n*UNIT YANG DIPILIH*\n${productListText}\n\n*DETAIL KEBUTUHAN/CATATAN*\n${rentalForm.value.notes}\n\n${closingSentence}`
-
+      const messageTemplate = `Halo Sinar Elektro Sejahtera, \n\nSaya ingin konsultasi sewa unit genset.\n\n*DATA PENYEWA*\nNama Lengkap: ${rentalForm.value.name}\nTipe Penyewa: ${rentalForm.value.tenantType}\n${rentalForm.value.tenantType === 'Perusahaan' ? `Nama Perusahaan: ${rentalForm.value.companyName}\n` : ''}No. WhatsApp: ${rentalForm.value.phone}\nDurasi Sewa: ${rentalForm.value.duration}\nLokasi: ${rentalForm.value.location}\n\n*UNIT YANG DIPILIH*\n${productListText}\n*DETAIL KEBUTUHAN/CATATAN*\n${rentalForm.value.notes}\n\n${closingSentence}`
       window.open(`https://api.whatsapp.com/send?phone=6289670308822&text=${encodeURIComponent(messageTemplate)}`, '_blank')
-      
       closeRentalModal()
       rentalForm.value = { name: '', tenantType: '', companyName: '', phone: '', duration: '', location: '', notes: '', selectedProducts: [], isCustomRequest: false }
     }
 
-    // --- SUBMIT SERVICE ---
     const submitService = () => {
       let hasError = false
       const fields = ['name', 'phone', 'tenantType', 'location', 'unitType', 'issue']
-      
       fields.forEach(field => {
         validateServiceField(field)
         if(serviceErrors.value[field]) hasError = true
       })
-
       if (serviceForm.value.tenantType === 'Perusahaan') {
         validateServiceField('companyName')
         if(serviceErrors.value.companyName) hasError = true
       }
-
       if (hasError) return
-
       const messageTemplate = `Halo Sinar Elektro Sejahtera, \n\nSaya ingin konsultasi mengenai Perbaikan/Service unit.\n\n*Data Client*\nNama Lengkap: ${serviceForm.value.name}\nTipe Klien: ${serviceForm.value.tenantType}\n${serviceForm.value.tenantType === 'Perusahaan' ? `Nama Perusahaan: ${serviceForm.value.companyName}\n` : ''}No. WhatsApp: ${serviceForm.value.phone}\nLokasi: ${serviceForm.value.location}\n\n*Detail Unit & Kendala*\nJenis Unit: ${serviceForm.value.unitType}\nKendala: ${serviceForm.value.issue}\n\nMohon informasinya untuk estimasi biaya dan jadwal pengecekan teknisi. Terima kasih.`
-
       window.open(`https://api.whatsapp.com/send?phone=6289670308822&text=${encodeURIComponent(messageTemplate)}`, '_blank')
       closeServiceModal()
       serviceForm.value = { name: '', tenantType: '', companyName: '', phone: '', location: '', unitType: '', issue: '' }
     }
     
-    // Slide Data
     let autoPlayInterval = null
     const slides = [
       { image: 'https://images.pexels.com/photos/257736/pexels-photo-257736.jpeg?auto=compress&cs=tinysrgb&w=1600', badge: 'Teknisi Ahli & Berpengalaman', titleLine1: 'Service Rewinding Elektro', titleLine2: 'Motor & Genset', description: 'Melayani service rewinding elektro motor 1 & 3 phase serta service genset generator dengan teknisi kompeten dan berpengalaman lebih dari 15 tahun.' },
       { image: 'https://images.pexels.com/photos/162553/keys-workshop-mechanic-tools-162553.jpeg?auto=compress&cs=tinysrgb&w=1600', badge: 'Kualitas Terbaik & Teruji', titleLine1: 'Penjualan Genset', titleLine2: 'Berkualitas', description: 'Temukan berbagai pilihan genset berkualitas di Sinar Elektro Sejahtera siap mendukung kebutuhan daya Anda mulai dari industri, perusahaan, hingga rumah tangga.' },
-      { image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=1600', badge: 'Sewa Mudah, Daya Siap Kapan Saja', titleLine1: 'Sewa Genset Cepat', titleLine2: '& Terpercaya', description: 'Solusi daya tanpa repot! Sinar Elektro Sejahtera menyediakan penyewaan genset untuk acara, proyek, perusahaan, hingga kebutuhan rumah tangga — fleksibel, handal, dan siap kapan pun dibutuhkan.' }
+      { image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=1600', badge: 'Sewa Mudah, Daya Siap Kapan Saja', titleLine1: 'Sewa Genset Cepat', titleLine2: '& Terpercaya', description: 'Sinar Elektro Sejahtera menyediakan sewa genset untuk acara, proyek, perusahaan, hingga kebutuhan rumah tangga. kami siap kapan pun dibutuhkan.' }
     ]
     const services = [
       { title: 'Penjualan', icon: ShoppingCart, desc: 'Unit Genset Baru', color: 'text-green-600', bgIcon: 'bg-green-100', actionType: 'link', path: '/catalog' },
@@ -277,24 +256,32 @@ export default {
     const prevSlide = () => { currentSlide.value = (currentSlide.value - 1 + slides.length) % slides.length }
     const startAutoPlay = () => { autoPlayInterval = setInterval(() => nextSlide(), 4000) }
     const stopAutoPlay = () => { if (autoPlayInterval) clearInterval(autoPlayInterval) }
-    const handleServiceClick = (service) => {
+
+    // --- LOGIKA KLIK TOMBOL SERVICE (DENGAN DELAY) ---
+    const handleServiceClick = async (service, index) => {
+      activeServiceIndex.value = index
+      
+      // Jeda 150ms agar warna biru terlihat di HP
+      await new Promise(resolve => setTimeout(resolve, 150))
+
       if (service.actionType === 'rentalModal') openRentalModal()
       else if (service.actionType === 'serviceModal') openServiceModal()
       else if (service.path) router.push(service.path)
+
+      // Reset index setelah aksi jalan
+      setTimeout(() => { activeServiceIndex.value = null }, 500)
     }
 
     onMounted(startAutoPlay)
     onUnmounted(stopAutoPlay)
 
     return { 
-      currentSlide, slides, services, nextSlide, prevSlide, stopAutoPlay, startAutoPlay, handleServiceClick,
-      // Rental
+      currentSlide, slides, services, nextSlide, prevSlide, stopAutoPlay, startAutoPlay, handleServiceClick, activeServiceIndex,
       isRentalModalOpen, closeRentalModal, rentalForm, rentalErrors, tenantOptions, 
       toggleProductSelection, removeProduct, isProductSelected, submitRental,
       visibleProducts, handleScroll, isLoadingProducts,
       validateRentalField, sanitizePhoneInput, toggleCustomRequest,
       selectedProductsRef, allProducts, handleGlobalClick, clearRentalError,
-      // Service
       isServiceModalOpen, closeServiceModal, serviceForm, serviceErrors, submitService, validateServiceField, clearServiceError
     }
   }
@@ -333,7 +320,7 @@ export default {
               </span>
             </div>
             <div class="space-y-2">
-              <h1 class="font-bold text-[32px] md:text-[60px] text-white leading-tight drop-shadow-md">
+              <h1 class="font-bold text-[30px] md:text-[56px] text-white leading-tight drop-shadow-md">
                 <span class="block">{{ slides[currentSlide].titleLine1 }}</span>
                 <span class="block text-yellow-400">{{ slides[currentSlide].titleLine2 }}</span>
               </h1>
@@ -348,30 +335,60 @@ export default {
   </section>
 
   <div class="services-wrapper w-full flex justify-center -mt-16 relative z-40 px-4">
-    <div class="max-w-6xl w-full">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div v-for="(service, index) in services" :key="index" @click="handleServiceClick(service)" class="bg-white hover:bg-blue-600 rounded-xl shadow-2xl p-4 flex items-center space-x-4 cursor-pointer transition-all duration-300 group border-b-4 border-transparent">
-          <div :class="`p-3 rounded-lg ${service.bgIcon} group-hover:bg-white transition-colors duration-300`">
-            <component :is="service.icon" :size="32" :class="service.color" />
-          </div>
-          <div>
-            <h3 class="font-bold text-gray-800 text-lg group-hover:text-white transition-colors duration-300">
-              {{ service.title }}
-            </h3>
-            <p class="text-sm text-gray-500 font-medium group-hover:text-blue-50 transition-colors duration-300">
-              {{ service.desc }}
-            </p>
-          </div>
+  <div class="max-w-6xl w-full">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      
+      <div 
+        v-for="(service, index) in services" 
+        :key="index" 
+        @click="handleServiceClick(service, index)" 
+        :class="[
+          /* shadow-xl digunakan untuk mengurangi bayangan sedikit saja dari sebelumnya */
+          'rounded-xl shadow-xl p-4 flex items-center space-x-4 cursor-pointer select-none group border-b-4 border-transparent',
+          activeServiceIndex === index 
+            ? 'bg-blue-600 border-blue-700' 
+            : 'bg-white hover:bg-blue-600'
+        ]"
+        style="transition: background-color 0.2s, border-color 0.2s;"
+      >
+        <div :class="[
+          'p-3 rounded-lg transition-colors duration-300',
+          activeServiceIndex === index 
+            ? 'bg-white' 
+            : `${service.bgIcon} group-hover:bg-white`
+        ]">
+          <component 
+            :is="service.icon" 
+            :size="32" 
+            :class="activeServiceIndex === index ? service.color : `${service.color}`" 
+          />
         </div>
+
+        <div>
+          <h3 :class="[
+            'font-bold text-lg transition-colors duration-300',
+            activeServiceIndex === index ? 'text-white' : 'text-gray-800 group-hover:text-white'
+          ]">
+            {{ service.title }}
+          </h3>
+          <p :class="[
+            'text-sm font-medium transition-colors duration-300',
+            activeServiceIndex === index ? 'text-blue-50' : 'text-gray-500 group-hover:text-blue-50'
+          ]">
+            {{ service.desc }}
+          </p>
+        </div>
+
       </div>
     </div>
   </div>
+</div>
 
   <teleport to="body">
     <transition name="modal-fade">
       <div 
         v-if="isRentalModalOpen" 
-        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        class="fixed inset-0 z-9999 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
         @click.self="closeRentalModal"
       >
         <div 
@@ -483,7 +500,7 @@ export default {
               </div>
 
               <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-3 mt-2">
-                <Info class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <Info class="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
                 <div class="text-sm text-blue-800">
                   <p class="font-medium">Informasi Penting</p>
                   <p class="mt-1 text-xs md:text-sm text-blue-700 leading-snug">Data ini akan diteruskan ke WhatsApp untuk <strong>konsultasi lebih lanjut</strong> dan mendapatkan <strong>penawaran harga terbaik</strong> dari tim kami.</p>
@@ -498,12 +515,12 @@ export default {
           </div>
 
           <div class="w-full md:w-1/2 bg-gray-50 border-t md:border-t-0 md:border-l border-gray-200 p-6 md:p-8 flex flex-col h-full overflow-hidden min-h-0">
-            <div class="flex items-center mb-4 pb-2 border-b border-gray-200/60 flex-shrink-0">
+            <div class="flex items-center mb-4 pb-2 border-b border-gray-200/60 shrink-0">
               <h3 class="font-bold text-gray-800 text-lg">Pilih Unit Genset</h3>
             </div>
             <div class="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar relative min-h-0" @scroll="handleScroll">
               <div v-for="product in visibleProducts" :key="product.id" class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex gap-3 items-center group product-item">
-                <div class="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-100">
+                <div class="w-20 h-20 shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-100">
                   <img :src="product.image" :alt="product.name" class="w-full h-full object-cover" />
                 </div>
                 <div class="flex-1">
@@ -538,7 +555,7 @@ export default {
     <transition name="modal-fade">
       <div 
         v-if="isServiceModalOpen" 
-        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        class="fixed inset-0 z-9999 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
         @click.self="closeServiceModal"
       >
         <div 
@@ -617,7 +634,7 @@ export default {
 
               <div class="md:col-span-2 space-y-4">
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-3">
-                  <Info class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <Info class="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
                   <div class="text-sm text-blue-800">
                     <p class="font-medium">Konsultasi Service</p>
                     <p class="mt-1 text-xs md:text-sm text-blue-700 leading-snug">
@@ -642,6 +659,13 @@ export default {
 </template>
 
 <style scoped>
+.services-wrapper div, 
+.services-wrapper h3, 
+.services-wrapper p {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  transform: none !important;
+}
 .fade-bg-enter-active, .fade-bg-leave-active { transition: opacity 0.8s ease; }
 .fade-bg-enter-from, .fade-bg-leave-to { opacity: 0; }
 .slide-up-enter-active { transition: all 0.7s ease; }
