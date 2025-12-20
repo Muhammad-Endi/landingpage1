@@ -3,8 +3,9 @@ import {
   CheckCircle2, Zap, Wrench, ShoppingCart, Truck, Factory,
   Building2, Hammer, TrendingUp, Briefcase, Award, Clock,
   Shield, HeadsetIcon, Smile, ArrowRight, Users, MessageCircle,
-  X, ChevronDown, Info
+  X, ChevronDown, Info, Loader2, AlertCircle
 } from 'lucide-vue-next'
+import apiClient from '@/api/axios'
 
 export default {
   name: 'AboutView',
@@ -13,11 +14,13 @@ export default {
     CheckCircle2, Zap, Wrench, ShoppingCart, Truck, Factory,
     Building2, Hammer, TrendingUp, Briefcase, Award, Clock,
     Shield, HeadsetIcon, Smile, ArrowRight, Users, MessageCircle,
-    X, ChevronDown, Info
+    X, ChevronDown, Info, Loader2, AlertCircle
   },
 
   data() {
     return {
+      baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+      
       // --- Data Asli AboutView ---
       mainServices: [
         { icon: Zap, title: 'Rewinding Elektro Motor 1 & 3 Phase' },
@@ -38,16 +41,10 @@ export default {
         { value: '100+', label: 'PROYEK SELESAI', icon: Zap, color: 'text-yellow-500' },
       ],
 
-      clients: [
-        { icon: Factory, name: 'Industri & Pabrik' },
-        { icon: Building2, name: 'Perusahaan Swasta' },
-        { icon: Hammer, name: 'Proyek Konstruksi' },
-        { icon: TrendingUp, name: 'Retail & Perdagangan' },
-        { icon: Zap, name: 'Pembangkit Listrik' }, 
-        { icon: Truck, name: 'Logistik & Transport' },
-        { icon: ShoppingCart, name: 'Pusat Perbelanjaan' },
-        { icon: Briefcase, name: 'Perkantoran' }
-      ],
+      // Clients from API
+      clients: [],
+      isLoadingClients: false,
+      clientsError: null,
 
       whyChooseUs: [
         { icon: Award, title: 'Pengalaman Teruji', description: 'Rekam jejak sempurna sejak 2009 dalam menangani berbagai masalah elektro industri.' },
@@ -84,113 +81,153 @@ export default {
     }
   },
 
+  async mounted() {
+    await this.fetchClients()
+  },
+
   methods: {
+    // Fetch Clients from API
+    async fetchClients() {
+      try {
+        this.isLoadingClients = true
+        this.clientsError = null
+        
+        const response = await apiClient.get('/api/public/clients', {
+          params: { limit: 20 }
+        })
+        
+        if (response.data.meta.success) {
+          this.clients = response.data.data.map(client => ({
+            name: client.name,
+            image: client.image 
+              ? `${this.baseURL}/${client.image}` 
+              : 'https://via.placeholder.com/100x100?text=Logo'
+          }))
+        }
+      } catch (error) {
+        console.error('Error fetching clients:', error)
+        this.clientsError = 'Gagal memuat data klien'
+        // Fallback to default icons if API fails
+        this.clients = [
+          { icon: Factory, name: 'Industri & Pabrik' },
+          { icon: Building2, name: 'Perusahaan Swasta' },
+          { icon: Hammer, name: 'Proyek Konstruksi' },
+          { icon: TrendingUp, name: 'Retail & Perdagangan' },
+          { icon: Zap, name: 'Pembangkit Listrik' }, 
+          { icon: Truck, name: 'Logistik & Transport' },
+          { icon: ShoppingCart, name: 'Pusat Perbelanjaan' },
+          { icon: Briefcase, name: 'Perkantoran' }
+        ]
+      } finally {
+        this.isLoadingClients = false
+      }
+    },
+
     // --- Method untuk Handle WhatsApp & Modal ---
     openWhatsApp(type) {
       if (type === 'perbaiki') {
-        this.openServiceModal();
-        return;
+        this.openServiceModal()
+        return
       }
 
       if (type === 'konsultasi') {
-        window.open(`https://wa.me/${this.whatsappNumber}`, '_blank');
-        return;
+        window.open(`https://wa.me/${this.whatsappNumber}`, '_blank')
+        return
       }
     },
 
     openServiceModal() {
-      this.isServiceModalOpen = true;
-      document.body.style.overflow = 'hidden';
+      this.isServiceModalOpen = true
+      document.body.style.overflow = 'hidden'
     },
 
     closeServiceModal() {
-      this.isServiceModalOpen = false;
-      document.body.style.overflow = '';
-      this.resetServiceForm();
+      this.isServiceModalOpen = false
+      document.body.style.overflow = ''
+      this.resetServiceForm()
     },
 
     resetServiceForm() {
       this.serviceForm = {
         name: '', tenantType: '', companyName: '',
         phone: '', location: '', unitType: '', issue: ''
-      };
+      }
       this.serviceErrors = {
         name: false, tenantType: false, companyName: false,
         phone: false, location: false, unitType: false, issue: false
-      };
+      }
     },
 
     clearAllErrors() {
       Object.keys(this.serviceErrors).forEach(key => {
-        this.serviceErrors[key] = false;
-      });
+        this.serviceErrors[key] = false
+      })
     },
 
     handleGlobalClick(e) {
-      e.stopPropagation();
-      this.clearAllErrors();
+      e.stopPropagation()
+      this.clearAllErrors()
     },
 
     sanitizePhoneInput(event) {
-      let value = event.target.value.replace(/\D/g, '');
-      this.serviceForm.phone = value;
+      let value = event.target.value.replace(/\D/g, '')
+      this.serviceForm.phone = value
     },
 
     validateServiceField(field) {
-      this.serviceErrors[field] = !this.serviceForm[field];
+      this.serviceErrors[field] = !this.serviceForm[field]
     },
 
     clearServiceError(field) {
       if (this.serviceForm[field]) {
-        this.serviceErrors[field] = false;
+        this.serviceErrors[field] = false
       }
     },
 
     submitService() {
       // 1. Validasi manual semua field
-      this.validateServiceField('name');
-      this.validateServiceField('tenantType');
+      this.validateServiceField('name')
+      this.validateServiceField('tenantType')
       if (this.serviceForm.tenantType === 'Perusahaan') {
-        this.validateServiceField('companyName');
+        this.validateServiceField('companyName')
       }
-      this.validateServiceField('phone');
-      this.validateServiceField('location');
-      this.validateServiceField('unitType');
-      this.validateServiceField('issue');
+      this.validateServiceField('phone')
+      this.validateServiceField('location')
+      this.validateServiceField('unitType')
+      this.validateServiceField('issue')
 
       // 2. Cek apakah ada error
       const hasErrors = Object.keys(this.serviceErrors).some(key => {
-        if (key === 'companyName' && this.serviceForm.tenantType !== 'Perusahaan') return false;
-        return this.serviceErrors[key];
-      });
+        if (key === 'companyName' && this.serviceForm.tenantType !== 'Perusahaan') return false
+        return this.serviceErrors[key]
+      })
 
-      if (hasErrors) return;
+      if (hasErrors) return
 
-      // 3. Format Pesan WhatsApp (UPDATE DISINI)
-      // Menggunakan \n untuk baris baru antara salam dan tujuan
-      let message = `Halo Sinar Elektro Sejahtera,\n\nSaya ingin konsultasi mengenai Service/Perbaikan Unit.\n\n`;
+      // 3. Format Pesan WhatsApp
+      let message = `Halo Sinar Elektro Sejahtera,\n\nSaya ingin konsultasi mengenai Service/Perbaikan Unit.\n\n`
       
-      message += `*Data Client:*\n`;
-      message += `Nama: ${this.serviceForm.name}\n`;
-      message += `Tipe: ${this.serviceForm.tenantType}\n`;
+      message += `*Data Client:*\n`
+      message += `Nama: ${this.serviceForm.name}\n`
+      message += `Tipe: ${this.serviceForm.tenantType}\n`
       
       if (this.serviceForm.tenantType === 'Perusahaan') {
-        message += `Perusahaan: ${this.serviceForm.companyName}\n`;
+        message += `Perusahaan: ${this.serviceForm.companyName}\n`
       }
       
-      message += `No. WA: ${this.serviceForm.phone}\n`;
-      message += `Lokasi: ${this.serviceForm.location}\n\n`;
-      message += `*Detail Unit & Kerusakan:*\n`;
-      message += `Nama Unit: ${this.serviceForm.unitType}\n`;
-      message += `Kendala: ${this.serviceForm.issue}\n\n`;
-      message += `Mohon informasi estimasi biaya dan jadwal pengecekan teknisi. Terima kasih.`;
+      message += `No. WA: ${this.serviceForm.phone}\n`
+      message += `Lokasi: ${this.serviceForm.location}\n\n`
+      message += `*Detail Unit & Kerusakan:*\n`
+      message += `Nama Unit: ${this.serviceForm.unitType}\n`
+      message += `Kendala: ${this.serviceForm.issue}\n\n`
+      message += `Mohon informasi estimasi biaya dan jadwal pengecekan teknisi. Terima kasih.`
 
       // 4. Kirim ke WhatsApp
-      const url = `https://wa.me/${this.whatsappNumber}?text=${encodeURIComponent(message)}`;
-      window.open(url, '_blank');
+      const url = `https://wa.me/${this.whatsappNumber}?text=${encodeURIComponent(message)}`
+      window.open(url, '_blank')
       
       // 5. Tutup Modal
-      this.closeServiceModal();
+      this.closeServiceModal()
     }
   }
 }
@@ -199,100 +236,103 @@ export default {
 <template>
   <div class="antialiased text-gray-800 overflow-x-hidden">
     
+    <!-- Hero Section -->
     <section class="relative flex flex-col justify-center items-center text-center py-18 md:py-20 mt-20 md:mt-20 bg-[#1F65E2] overflow-hidden">
-  <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
-  
-  <div class="relative z-10 flex flex-col items-center px-4 max-w-4xl">
-    <h1 class="font-bold mb-4 text-3xl md:text-[40px] leading-tight md:leading-snug text-white drop-shadow-sm tracking-wide">
-      Tentang <span class="text-[#FCCC4D]">Sinar Elektro</span>
-    </h1>
-    
-    <p class="text-blue-50 text-[16px] md:text-lg font-light leading-relaxed max-w-3xl opacity-90">
-      Mitra strategis terpercaya untuk solusi perbaikan motor listrik, genset, dan kebutuhan energi industri Anda sejak 2009.
-    </p>
-  </div>
-</section>
-
-  <section id="perusahaan" class="py-12 sm:py-20 lg:py-28 bg-white">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="grid lg:grid-cols-2 gap-4 sm:gap-10 lg:gap-16 items-start">
+      <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
       
-      <div class="contents lg:block">
-        <div class="order-1">
-          <h2 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-0 sm:mb-6 leading-tight">
-            Solusi Energi & Mekanikal <br class="hidden sm:block">
-            <span class="text-blue-600 relative">
-              Profesional
-              <svg class="absolute w-full h-2 sm:h-3 -bottom-1 left-0 text-yellow-400 opacity-60" viewBox="0 0 200 9" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M2.00025 6.99997C25.7501 2.99991 74.8047 -1.49999 198 3.5" stroke="currentColor" stroke-width="3"/>
-              </svg>
-            </span>
-          </h2>
-        </div>
+      <div class="relative z-10 flex flex-col items-center px-4 max-w-4xl">
+        <h1 class="font-bold mb-4 text-3xl md:text-[40px] leading-tight md:leading-snug text-white drop-shadow-sm tracking-wide">
+          Tentang <span class="text-[#FCCC4D]">Sinar Elektro</span>
+        </h1>
+        
+        <p class="text-blue-50 text-[16px] md:text-lg font-light leading-relaxed max-w-3xl opacity-90">
+          Mitra strategis terpercaya untuk solusi perbaikan motor listrik, genset, dan kebutuhan energi industri Anda sejak 2009.
+        </p>
+      </div>
+    </section>
 
-        <div class="order-3">
-          <p class="text-base sm:text-lg text-gray-600 leading-relaxed mb-3 sm:mb-6 text-justify">
-            Berdiri sejak 2009, <strong>Sinar Elektro Sejahtera</strong> adalah workshop spesialis yang bergerak di bidang <em>Rewinding</em> Elektromotor 1 & 3 Phase. Selain itu kami juga menyediakan layanan service, penjualan, serta penyewaan genset.
-          </p>
-          <p class="text-base sm:text-lg text-gray-600 leading-relaxed mb-6 sm:mb-8">
-            Melalui teknologi presisi dan teknisi ahli, kami menjamin mesin kembali ke performa maksimal pabrikan.
-          </p>
-
-          <div class="bg-blue-50/50 rounded-xl p-5 sm:p-6 border border-blue-100">
-            <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2 text-base sm:text-base">
-              <Zap class="text-yellow-500" size="18"/> Layanan Unggulan Kami:
-            </h3>
-            
-            <ul class="space-y-3">
-              <li v-for="(service, index) in mainServices" :key="index" class="flex items-start gap-3">
-                <CheckCircle2 class="text-blue-600 shrink-0 mt-0.5" :size="18" />
-                
-                <span class="text-gray-700 text-base sm:text-base font-normal sm:font-medium">
-                  {{ service.title }}
+    <!-- Company Info Section -->
+    <section id="perusahaan" class="py-12 sm:py-20 lg:py-28 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-4 sm:gap-10 lg:gap-16 items-start">
+          
+          <div class="contents lg:block">
+            <div class="order-1">
+              <h2 class="text-2xl sm:text-4xl font-bold text-gray-900 mb-0 sm:mb-6 leading-tight">
+                Solusi Energi & Mekanikal <br class="hidden sm:block">
+                <span class="text-blue-600 relative">
+                  Profesional
+                  <svg class="absolute w-full h-2 sm:h-3 -bottom-1 left-0 text-yellow-400 opacity-60" viewBox="0 0 200 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.00025 6.99997C25.7501 2.99991 74.8047 -1.49999 198 3.5" stroke="currentColor" stroke-width="3"/>
+                  </svg>
                 </span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
+              </h2>
+            </div>
 
-      <div class="contents lg:block">
-        <div class="order-2">
-          <div class="relative rounded-2xl overflow-hidden shadow-xl sm:shadow-2xl group mb-0 sm:mb-8">
-            <div class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500"></div>
-            <img src="/mitra.jpeg" alt="Workshop Sinar Elektro" class="w-full h-[220px] sm:h-[300px] lg:h-[400px] object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out" onerror="this.src='https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800';" />
-            
-            <div class="absolute left-3 bottom-3 bg-white rounded-xl p-3 sm:p-4 shadow-xl flex items-center gap-3">
-              <div class="flex items-center gap-3 sm:gap-4">
-                <div class="flex items-center justify-center shrink-0">
-                  <img src="/logo.png" alt="Logo Workshop" class="w-8 h-8 sm:w-10 sm:h-10 object-contain" onerror="this.style.display='none'" />
+            <div class="order-3">
+              <p class="text-base sm:text-lg text-gray-600 leading-relaxed mb-3 sm:mb-6 text-justify">
+                Berdiri sejak 2009, <strong>Sinar Elektro Sejahtera</strong> adalah workshop spesialis yang bergerak di bidang <em>Rewinding</em> Elektromotor 1 & 3 Phase. Selain itu kami juga menyediakan layanan service, penjualan, serta penyewaan genset.
+              </p>
+              <p class="text-base sm:text-lg text-gray-600 leading-relaxed mb-6 sm:mb-8">
+                Melalui teknologi presisi dan teknisi ahli, kami menjamin mesin kembali ke performa maksimal pabrikan.
+              </p>
+
+              <div class="bg-blue-50/50 rounded-xl p-5 sm:p-6 border border-blue-100">
+                <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2 text-base sm:text-base">
+                  <Zap class="text-yellow-500" size="18"/> Layanan Unggulan Kami:
+                </h3>
+                
+                <ul class="space-y-3">
+                  <li v-for="(service, index) in mainServices" :key="index" class="flex items-start gap-3">
+                    <CheckCircle2 class="text-blue-600 shrink-0 mt-0.5" :size="18" />
+                    
+                    <span class="text-gray-700 text-base sm:text-base font-normal sm:font-medium">
+                      {{ service.title }}
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="contents lg:block">
+            <div class="order-2">
+              <div class="relative rounded-2xl overflow-hidden shadow-xl sm:shadow-2xl group mb-0 sm:mb-8">
+                <div class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500"></div>
+                <img src="/mitra.jpeg" alt="Workshop Sinar Elektro" class="w-full h-[220px] sm:h-[300px] lg:h-[400px] object-cover transform group-hover:scale-105 transition-transform duration-700 ease-in-out" onerror="this.src='https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800';" />
+                
+                <div class="absolute left-3 bottom-3 bg-white rounded-xl p-3 sm:p-4 shadow-xl flex items-center gap-3">
+                  <div class="flex items-center gap-3 sm:gap-4">
+                    <div class="flex items-center justify-center shrink-0">
+                      <img src="/logo.png" alt="Logo Workshop" class="w-8 h-8 sm:w-10 sm:h-10 object-contain" onerror="this.style.display='none'" />
+                    </div>
+                    <div>
+                      <p class="text-[10px] text-gray-500 font-semibold uppercase tracking-wide">Kualitas Terjamin</p>
+                      <p class="text-xs sm:text-base font-bold text-gray-900 leading-none mt-0.5">Sejak 2009</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p class="text-[10px] text-gray-500 font-semibold uppercase tracking-wide">Kualitas Terjamin</p>
-                  <p class="text-xs sm:text-base font-bold text-gray-900 leading-none mt-0.5">Sejak 2009</p>
+              </div>
+            </div>
+
+            <div class="order-4 mt-2 sm:mt-0">
+              <div class="grid grid-cols-3 gap-2 sm:gap-4 border-t border-gray-100 pt-6">
+                <div v-for="(stat, index) in stats" :key="index" class="text-center">
+                  <div class="flex justify-center mb-1 sm:mb-2">
+                    <component :is="stat.icon" class="w-5 h-5 sm:w-6 sm:h-6" :class="stat.color" stroke-width="2.5" />
+                  </div>
+                  <div class="text-xl sm:text-[22px] font-extrabold text-gray-900 leading-none mb-1">{{ stat.value }}</div>
+                  <div class="text-[9px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider sm:tracking-widest">{{ stat.label }}</div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div class="order-4 mt-2 sm:mt-0">
-          <div class="grid grid-cols-3 gap-2 sm:gap-4 border-t border-gray-100 pt-6">
-            <div v-for="(stat, index) in stats" :key="index" class="text-center">
-              <div class="flex justify-center mb-1 sm:mb-2">
-                <component :is="stat.icon" class="w-5 h-5 sm:w-6 sm:h-6" :class="stat.color" stroke-width="2.5" />
-              </div>
-              <div class="text-xl sm:text-[22px] font-extrabold text-gray-900 leading-none mb-1">{{ stat.value }}</div>
-              <div class="text-[9px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider sm:tracking-widest">{{ stat.label }}</div>
-            </div>
-          </div>
         </div>
       </div>
+    </section>
 
-    </div>
-  </div>
-</section>
-
+    <!-- Clients Section with API -->
     <section class="py-10 md:py-16 bg-gray-50 border-y border-gray-200 overflow-hidden">
       <div class="w-full">
         <div class="text-center mb-6 md:mb-10 px-4">
@@ -301,14 +341,41 @@ export default {
           </h2>
         </div>
 
-        <div class="relative w-full mask-linear-fade">
+        <!-- Loading State -->
+        <div v-if="isLoadingClients" class="flex justify-center items-center py-10">
+          <Loader2 class="w-8 h-8 animate-spin text-blue-600" />
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="clientsError" class="text-center py-10 px-4">
+          <AlertCircle class="w-12 h-12 text-gray-400 mx-auto mb-3" />
+          <p class="text-gray-500 text-sm">{{ clientsError }}</p>
+        </div>
+
+        <!-- Clients Marquee -->
+        <div v-else class="relative w-full mask-linear-fade">
           <div class="flex w-max animate-marquee hover:[animation-play-state:paused] items-center py-2 md:py-4">
             <div v-for="i in 3" :key="i" class="flex gap-4 md:gap-6 px-2 md:px-3">
               <div v-for="(client, index) in clients" :key="index" 
                 class="group relative flex items-center gap-3 md:gap-5 p-3.5 md:p-5 min-w-60 md:min-w-[300px] bg-white border border-slate-200/80 rounded-2xl shadow-[0_2px_15px_-3px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_25px_-5px_rgba(37,99,235,0.15)] hover:border-blue-300 transition-all duration-300 cursor-default">
                 
-                <div class="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-xl flex items-center justify-center transition-all duration-300 bg-slate-50 text-slate-400 border border-slate-100 group-hover:bg-blue-600 group-hover:text-white group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-blue-500/30">
-                  <component :is="client.icon" class="w-5 h-5 md:w-6 md:h-6" stroke-width="1.5" />
+                <!-- Image instead of Icon -->
+                <div class="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-xl flex items-center justify-center transition-all duration-300 bg-white border border-slate-200 group-hover:border-blue-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-blue-500/20 overflow-hidden">
+                  <img 
+                    v-if="client.image" 
+                    :src="client.image" 
+                    :alt="client.name"
+                    class="w-full h-full object-contain p-1"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"
+                  />
+                  <!-- Fallback Icon if image fails -->
+                  <component 
+                    v-if="client.icon"
+                    :is="client.icon" 
+                    class="w-5 h-5 md:w-6 md:h-6 text-slate-400 group-hover:text-blue-600" 
+                    stroke-width="1.5"
+                    style="display: none;"
+                  />
                 </div>
 
                 <div class="flex flex-col">
@@ -325,8 +392,9 @@ export default {
           </div>
         </div>
       </div>
-  </section>
+    </section>
 
+    <!-- Why Choose Us Section -->
     <section class="py-12 md:py-24 bg-white relative">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-10 md:mb-16 max-w-3xl mx-auto">
@@ -357,6 +425,7 @@ export default {
       </div>
     </section>
 
+    <!-- CTA Section -->
     <section class="relative py-24 bg-linear-to-r from-[#F0F9FF] to-[#FFFBF0] border-t border-blue-50/50 overflow-hidden">
       <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 class="text-3xl md:text-[32px] font-extrabold text-[#0F172A] mb-4 tracking-tight">Butuh Konsultasi dan Perbaikan ?</h2>
@@ -372,6 +441,7 @@ export default {
       </div>
     </section>
 
+    <!-- Service Modal (sama seperti sebelumnya) -->
     <teleport to="body">
       <transition name="modal-fade">
         <div 
@@ -480,7 +550,7 @@ export default {
 </template>
 
 <style scoped>
-/* --- Style Marquee & Masking (Asli AboutView) --- */
+/* Marquee & Masking */
 @keyframes marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-33.33%); }
@@ -500,7 +570,7 @@ export default {
   -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
 }
 
-/* --- Style Modal & Animasi Form (Dari Hero.vue) --- */
+/* Modal & Animations */
 .modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.3s ease; }
 .modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
 
@@ -513,7 +583,7 @@ export default {
   animation: fadeInDown 0.3s ease-out forwards; 
 }
 
-/* Custom Scrollbar untuk Modal */
+/* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }

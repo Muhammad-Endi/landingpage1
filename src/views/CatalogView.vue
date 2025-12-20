@@ -2,8 +2,9 @@
 import {
   Building2, ShoppingBag, MapPin, ChevronLeft, ChevronRight, CheckCircle,
   ArrowRight, Search, Filter, Wrench, MessageCircle, ChevronDown,
-  X, CalendarClock, Trash2, Info, Plus, Check, Loader2, Phone
+  X, CalendarClock, Trash2, Info, Plus, Check, Loader2, Phone, AlertCircle
 } from 'lucide-vue-next'
+import apiClient from '@/api/axios'
 
 export default {
   name: 'Catalog',
@@ -11,40 +12,27 @@ export default {
   components: {
     Building2, ShoppingBag, MapPin, ChevronLeft, ChevronRight, CheckCircle, ArrowRight, Search, Filter,
     Wrench, MessageCircle, ChevronDown,
-    X, CalendarClock, Trash2, Info, Plus, Check, Loader2, Phone
+    X, CalendarClock, Trash2, Info, Plus, Check, Loader2, Phone, AlertCircle
   },
 
   data() {
     return {
+      baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+      
       // --- DATA CATALOG UTAMA ---
       searchQuery: '',
       currentPage: 1,
       itemsPerPage: 8,
       isDropdownOpen: false,
-      selectedBrand: 'all',
+      selectedCategory: 'all',
 
-      brandOptions: [
-        { value: 'all', label: 'Semua' },
-        { value: 'MITSUBISHI', label: 'Mitsubishi' },
-        { value: 'PERKINS', label: 'Perkins' },
-        { value: 'YANMAR', label: 'Yanmar' },
-        { value: 'CATERPILLAR', label: 'Caterpillar' },
-        { value: 'CUMMINS', label: 'Cummins' }
-      ],
-
-      // PROJECTS DATA
-      projects: [
-        { id: 'p1', title: 'Perkins 13 kVA Silent', price: 'Rp 2.500.000 / bln', image: 'https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=800', specs: [{ label: 'Brand', value: 'PERKINS' }, { label: 'Model', value: '403A-15G1' }, { label: 'Prime', value: '13 kVA' }] },
-        { id: 'p2', title: 'Yanmar 60 kVA Silent', price: 'Rp 6.000.000 / bln', image: 'https://images.pexels.com/photos/1267338/pexels-photo-1267338.jpeg?auto=compress&cs=tinysrgb&w=800', specs: [{ label: 'Brand', value: 'YANMAR' }, { label: 'Model', value: '4TNV98T' }, { label: 'Prime', value: '60 kVA' }] },
-        { id: 'p3', title: 'Cummins 500 kVA Silent', price: 'Rp 45.000.000 / bln', image: 'https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&w=800', specs: [{ label: 'Brand', value: 'CUMMINS' }, { label: 'Model', value: 'KTA19-G3' }, { label: 'Prime', value: '500 kVA' }] },
-        { id: 'p4', title: 'Caterpillar 2000 kVA Silent', price: 'Rp 150.000.000 / bln', image: 'https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=800', specs: [{ label: 'Brand', value: 'CATERPILLAR' }, { label: 'Model', value: '3516B' }, { label: 'Prime', value: '2000 kVA' }] },
-        { id: 'p5', title: 'Mitsubishi 1000 kVA Silent', price: 'Rp 85.500.000 / bln', image: 'https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=800', specs: [{ label: 'Brand', value: 'MITSUBISHI' }, { label: 'Model', value: 'S12R-PTA' }, { label: 'Prime', value: '1000 kVA' }] },
-        { id: 'p6', title: 'Perkins 100 kVA Silent', price: 'Rp 12.000.000 / bln', image: 'https://images.pexels.com/photos/1267338/pexels-photo-1267338.jpeg?auto=compress&cs=tinysrgb&w=800', specs: [{ label: 'Brand', value: 'PERKINS' }, { label: 'Model', value: '1104C-44TAG2' }, { label: 'Prime', value: '100 kVA' }] },
-        { id: 'p7', title: 'Cummins 250 kVA Silent', price: 'Rp 20.000.000 / bln', image: 'https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=800', specs: [{ label: 'Brand', value: 'CUMMINS' }, { label: 'Model', value: '6LTAA8.9-G2' }, { label: 'Prime', value: '250 kVA' }] },
-        { id: 'p8', title: 'Yanmar 40 kVA Silent', price: 'Rp 4.500.000 / bln', image: 'https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=800', specs: [{ label: 'Brand', value: 'YANMAR' }, { label: 'Model', value: '4TNV98' }, { label: 'Prime', value: '40 kVA' }] },
-        { id: 'p9', title: 'Caterpillar 400 kVA Silent', price: 'Rp 32.750.000 / bln', image: 'https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&w=800', specs: [{ label: 'Brand', value: 'CATERPILLAR' }, { label: 'Model', value: 'C13' }, { label: 'Prime', value: '400 kVA' }] },
-        { id: 'p10', title: 'Mitsubishi 20 kVA Silent', price: 'Rp 3.000.000 / bln', image: 'https://images.pexels.com/photos/1267338/pexels-photo-1267338.jpeg?auto=compress&cs=tinysrgb&w=800', specs: [{ label: 'Brand', value: 'MITSUBISHI' }, { label: 'Model', value: 'S4Q2' }, { label: 'Prime', value: '20 kVA' }] }
-      ],
+      // Data dari API
+      categories: [],
+      products: [],
+      totalProducts: 0,
+      isLoadingProducts: false,
+      isFetchingCategories: false,
+      fetchError: null,
 
       // --- DATA UNTUK MODAL SEWA (RENTAL FORM) ---
       isRentalModalOpen: false,
@@ -56,17 +44,20 @@ export default {
       },
       tenantOptions: ['Pribadi', 'Perusahaan'],
 
-      // --- KONFIGURASI LAZY LOAD (SCROLL) ---
+      // --- KONFIGURASI LAZY LOAD (SCROLL) untuk MODAL ---
       visibleProducts: [],
-      isLoadingProducts: false,
+      isLoadingModalProducts: false,
       displayedCount: 0,
       initialLoad: 5,
       loadStep: 3,
+      allModalProducts: []
     }
   },
 
-  mounted() {
+  async mounted() {
     document.addEventListener('click', this.handleClickOutside)
+    await this.fetchCategories()
+    await this.fetchProducts()
   },
 
   beforeUnmount() {
@@ -74,102 +65,174 @@ export default {
   },
 
   computed: {
-    // --- CATALOG COMPUTED ---
-    filteredProjects() {
-      return this.projects.filter(project => {
-        const searchLower = this.searchQuery.toLowerCase()
-        const matchesSearch =
-          project.title.toLowerCase().includes(searchLower) ||
-          project.specs.some(spec => spec.value.toLowerCase().includes(searchLower))
-        const matchesBrand = this.selectedBrand === 'all' ||
-          project.specs.some(s => s.label === 'Brand' && s.value === this.selectedBrand)
-        return matchesSearch && matchesBrand
-      })
-    },
-
-    paginatedProjects() {
-      const start = (this.currentPage - 1) * this.itemsPerPage
-      const end = start + this.itemsPerPage
-      return this.filteredProjects.slice(start, end)
-    },
-
     totalPages() {
-      return Math.ceil(this.filteredProjects.length / this.itemsPerPage)
+      return Math.ceil(this.totalProducts / this.itemsPerPage)
     },
 
     searchResultText() {
-      if (this.filteredProjects.length === 0) return 'Tidak ada produk ditemukan';
-      if (this.selectedBrand === 'all') return 'Semua produk ditemukan';
-      const option = this.brandOptions.find(opt => opt.value === this.selectedBrand);
-      const brandName = option ? option.label : this.selectedBrand;
-      return `Produk ${brandName} ditemukan`;
+      if (this.totalProducts === 0) return 'Tidak ada produk ditemukan';
+      if (this.selectedCategory === 'all') return `${this.totalProducts} Produk ditemukan`;
+      const category = this.categories.find(cat => cat.uuid === this.selectedCategory);
+      const categoryName = category ? category.name : 'Unknown';
+      return `${this.totalProducts} Produk ${categoryName} ditemukan`;
     },
 
-    currentBrandLabel() {
-      const option = this.brandOptions.find(opt => opt.value === this.selectedBrand);
-      return option ? option.label : 'Semua';
+    currentCategoryLabel() {
+      if (this.selectedCategory === 'all') return 'Semua Kategori';
+      const category = this.categories.find(cat => cat.uuid === this.selectedCategory);
+      return category ? category.name : 'Semua Kategori';
     },
 
     activeTheme() {
       return {
-        // UPDATE: Warna biru cerah untuk pagination
         btnActive: 'bg-blue-500 text-white shadow-blue-200 shadow-md border-blue-500',
         btnHover: 'hover:bg-blue-50 hover:text-blue-500',
         navHover: 'hover:bg-blue-500 hover:text-white hover:border-blue-500',
         titleHover: 'group-hover:text-blue-500',
         cardBtnHover: 'text-gray-700 hover:bg-blue-500 hover:text-white group-hover:shadow-blue-200'
       }
-    },
+    }
+  },
 
-    // --- MODAL DATA SOURCE ---
-    allModalProducts() {
-      return this.projects.map(p => ({
-        id: p.id,
-        name: p.title,
-        price: p.price,
-        image: p.image
-      }));
+  watch: {
+    searchQuery() {
+      this.currentPage = 1
+      this.debounceFetchProducts()
+    },
+    selectedCategory() {
+      this.currentPage = 1
+      this.fetchProducts()
+    },
+    currentPage() {
+      this.fetchProducts()
     }
   },
 
   methods: {
-    // --- NAVIGASI KE HALAMAN DETAIL (BARU DITAMBAHKAN) ---
-    goToDetail(productId) {
-      this.$router.push({ name: 'product-detail', params: { id: productId } });
+    // Format Rupiah
+    formatRupiah(amount) {
+      if (!amount) return 'Rp 0'
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(amount)
     },
 
-    // --- WHATSAPP DIRECT METHOD (KOSONGAN) ---
+    // Fetch Categories
+    async fetchCategories() {
+      try {
+        this.isFetchingCategories = true
+        const response = await apiClient.get('/api/public/categories')
+        
+        if (response.data.meta.success) {
+          this.categories = [
+            { uuid: 'all', name: 'Semua Kategori' },
+            ...response.data.data
+          ]
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+        this.categories = [{ uuid: 'all', name: 'Semua Kategori' }]
+      } finally {
+        this.isFetchingCategories = false
+      }
+    },
+
+    // Fetch Products
+    async fetchProducts() {
+      try {
+        this.isLoadingProducts = true
+        this.fetchError = null
+        
+        const params = {
+          page: this.currentPage,
+          limit: this.itemsPerPage,
+          search: this.searchQuery || undefined,
+          category: this.selectedCategory !== 'all' ? this.selectedCategory : undefined
+        }
+
+        const response = await apiClient.get('/api/public/products', { params })
+        
+        if (response.data.meta.success) {
+          this.products = response.data.data.map(product => {
+            const spec = product.specifications?.[0] || {}
+            return {
+              id: product.uuid,
+              uuid: product.uuid,
+              title: product.title,
+              image: product.image 
+                ? `${this.baseURL}/${product.image}` 
+                : 'https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=800',
+              sellPrice: product.sell_price,
+              rentPrice: product.rent_price,
+              formattedRentPrice: this.formatRupiah(product.rent_price),
+              formattedSellPrice: this.formatRupiah(product.sell_price),
+              stock: product.stock,
+              category: product.category?.name || 'Uncategorized',
+              specs: [
+                { label: 'Brand', value: spec.brand || 'N/A' },
+                { label: 'Model', value: spec.model || 'N/A' },
+                { label: 'Prime', value: spec.prime_power || 'N/A' }
+              ]
+            }
+          })
+          
+          this.totalProducts = response.data.pagination.total
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error)
+        this.fetchError = 'Gagal memuat produk'
+        this.products = []
+        this.totalProducts = 0
+      } finally {
+        this.isLoadingProducts = false
+      }
+    },
+
+    // Debounce for search
+    debounceFetchProducts() {
+      clearTimeout(this._searchTimer)
+      this._searchTimer = setTimeout(() => {
+        this.fetchProducts()
+      }, 500)
+    },
+
+    // --- NAVIGASI KE HALAMAN DETAIL ---
+    goToDetail(productUuid) {
+      this.$router.push({ name: 'product-detail', params: { id: productUuid } })
+    },
+
+    // --- WHATSAPP DIRECT METHOD ---
     contactWhatsApp() {
-      // Membuka WhatsApp tanpa teks/template
-      window.open('https://api.whatsapp.com/send?phone=6289670308822', '_blank');
+      window.open('https://api.whatsapp.com/send?phone=6289670308822', '_blank')
     },
 
     // --- CATALOG METHODS ---
     changePage(page) {
       if (page >= 1 && page <= this.totalPages) {
         this.currentPage = page
-        // Scroll yang lebih smooth sedikit ke atas grid
         const grid = document.getElementById('project-grid')
         if (grid) {
-          const yOffset = -100; // Offset agar tidak tertutup header jika ada
-          const y = grid.getBoundingClientRect().top + window.pageYOffset + yOffset;
-          window.scrollTo({top: y, behavior: 'smooth'});
+          const yOffset = -100
+          const y = grid.getBoundingClientRect().top + window.pageYOffset + yOffset
+          window.scrollTo({top: y, behavior: 'smooth'})
         }
       }
     },
 
     resetFilter() {
       this.searchQuery = ''
-      this.selectedBrand = 'all'
+      this.selectedCategory = 'all'
       this.currentPage = 1
     },
 
     toggleDropdown() { this.isDropdownOpen = !this.isDropdownOpen },
 
-    selectBrand(brand) {
-      this.selectedBrand = brand
+    selectCategory(categoryUuid) {
+      this.selectedCategory = categoryUuid
       this.isDropdownOpen = false
-      this.currentPage = 1
     },
 
     handleClickOutside(event) {
@@ -180,25 +243,49 @@ export default {
     },
 
     // --- RENTAL MODAL METHODS ---
-
-    openRentalModal(productFromCatalog = null) {
+    async openRentalModal(productFromCatalog = null) {
       Object.keys(this.rentalErrors).forEach(key => this.rentalErrors[key] = false)
       this.rentalForm.selectedProducts = []
 
-      // Init Lazy Load List
+      // Fetch all products for modal if not loaded
+      await this.fetchAllProductsForModal()
       this.initializeProducts()
 
       if (productFromCatalog && typeof productFromCatalog === 'object') {
         const mappedProduct = {
-          id: productFromCatalog.id,
+          id: productFromCatalog.uuid,
           name: productFromCatalog.title,
-          price: productFromCatalog.price,
+          price: productFromCatalog.formattedRentPrice || 'Hubungi kami',
           image: productFromCatalog.image
         }
         this.rentalForm.selectedProducts.push(mappedProduct)
       }
 
       this.isRentalModalOpen = true
+    },
+
+    async fetchAllProductsForModal() {
+      try {
+        const response = await apiClient.get('/api/public/products', {
+          params: { page: 1, limit: 100 }
+        })
+        
+        if (response.data.meta.success) {
+          this.allModalProducts = response.data.data
+            .filter(p => p.rent_price && p.rent_price > 0)
+            .map(product => ({
+              id: product.uuid,
+              name: product.title,
+              price: this.formatRupiah(product.rent_price) + ' / bln',
+              image: product.image 
+                ? `${this.baseURL}/${product.image}` 
+                : 'https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=800'
+            }))
+        }
+      } catch (error) {
+        console.error('Error fetching modal products:', error)
+        this.allModalProducts = []
+      }
     },
     
     closeRentalModal() { this.isRentalModalOpen = false },
@@ -207,7 +294,7 @@ export default {
     initializeProducts() {
       this.displayedCount = this.initialLoad
       this.visibleProducts = this.allModalProducts.slice(0, this.displayedCount)
-      this.isLoadingProducts = false
+      this.isLoadingModalProducts = false
     },
 
     handleModalScroll(e) {
@@ -218,15 +305,15 @@ export default {
     },
 
     loadMoreProducts() {
-      if (this.isLoadingProducts || this.displayedCount >= this.allModalProducts.length) return
+      if (this.isLoadingModalProducts || this.displayedCount >= this.allModalProducts.length) return
       
-      this.isLoadingProducts = true
+      this.isLoadingModalProducts = true
       
       setTimeout(() => {
         const nextBatch = this.allModalProducts.slice(this.displayedCount, this.displayedCount + this.loadStep)
         this.visibleProducts.push(...nextBatch)
         this.displayedCount += this.loadStep
-        this.isLoadingProducts = false
+        this.isLoadingModalProducts = false
       }, 800)
     },
 
@@ -310,7 +397,6 @@ export default {
           productListText += `${index + 1}. ${product.name} (${product.price})\n`
         })
       } else if (isChecked) {
-        // --- TEKS TELAH DIUBAH DI SINI ---
         productListText = "_Saya belum memilih unit dan membutuhkan konsultasi/rekomendasi daya yang tepat._"
       }
 
@@ -325,12 +411,13 @@ export default {
 
       this.closeRentalModal()
       this.rentalForm = { name: '', tenantType: '', companyName: '', phone: '', duration: '', location: '', notes: '', selectedProducts: [], isCustomRequest: false }
-    },
+    }
   }
 }
 </script>
 
 <template>
+  <!-- Hero Section -->
   <section class="relative flex flex-col justify-center items-center text-center py-18 md:py-20 mt-20 md:mt-20 bg-[#1F65E2] overflow-hidden">
     <div class="absolute inset-0 opacity-10 bg-radial from-white via-transparent to-transparent"></div>
     <div class="relative z-10 flex flex-col items-center px-4 max-w-4xl">
@@ -343,87 +430,106 @@ export default {
     </div>
   </section>
 
- <section class="bg-white border-b border-gray-200 py-7 relative z-20">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 lg:gap-6"> 
-      
-      <div class="contents lg:block lg:w-[380px]">
-        <div class="relative w-full order-1">
-          <div class="absolute top-3.5 left-0 pl-4 flex items-center pointer-events-none">
-            <Search class="h-5 w-5 text-gray-400" />
+  <!-- Search & Filter Section -->
+  <section class="bg-white border-b border-gray-200 py-7 relative z-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 lg:gap-6"> 
+        
+        <div class="contents lg:block lg:w-[380px]">
+          <div class="relative w-full order-1">
+            <div class="absolute top-3.5 left-0 pl-4 flex items-center pointer-events-none">
+              <Search class="h-5 w-5 text-gray-400" />
+            </div>
+            <input 
+              v-model="searchQuery" 
+              type="text" 
+              class="block w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#1F64E1] focus:border-[#1F64E1] transition duration-150 ease-in-out text-sm" 
+              placeholder="Cari produk, brand, atau spesifikasi..." 
+            />
           </div>
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            class="block w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#1F64E1] focus:border-[#1F64E1] transition duration-150 ease-in-out text-sm" 
-            placeholder="Cari produk, brand, atau spesifikasi..." 
-          />
+
+          <p class="order-3 mt-1 lg:mt-3 ml-1 text-[15px] lg:text-[16px] font-medium text-[#4B5563] transition-all duration-300">
+             {{ searchResultText }}
+          </p>
         </div>
 
-        <p class="order-3 mt-1 lg:mt-3 ml-1 text-[15px] lg:text-[16px] font-medium text-[#4B5563] transition-all duration-300">
-           {{ searchResultText }}
-        </p>
-      </div>
-
-      <div class="flex items-center gap-2 w-full lg:w-auto relative order-2">
-          <div class="relative w-full lg:w-auto" ref="dropdownContainer">
-            <button 
-              @click="toggleDropdown"
-              class="flex items-center justify-between gap-3 w-full lg:w-[180px] px-4 py-3.5 rounded-md text-sm font-normal transition-all whitespace-nowrap border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1F64E1] focus:border-[#1F64E1]"
-            >
-              <div class="flex items-center gap-2 text-gray-500">
-                <Filter class="w-4 h-4"/> 
-                <span class="text-gray-700">{{ currentBrandLabel }}</span>
-              </div>
-              <ChevronDown class="w-4 h-4 text-gray-400" /> 
-            </button>
-
-            <transition
-              enter-active-class="transition ease-out duration-100"
-              enter-from-class="transform opacity-0 scale-95"
-              enter-to-class="transform opacity-100 scale-100"
-              leave-active-class="transition ease-in duration-75"
-              leave-from-class="transform opacity-100 scale-100"
-              leave-to-class="transform opacity-0 scale-95"
-            >
-              <div 
-                v-if="isDropdownOpen"
-                class="absolute left-0 lg:right-0 lg:left-auto mt-2 w-full rounded-md shadow-xl bg-white ring-1 ring-black ring-opacity-5 z-50 overflow-hidden"
+        <div class="flex items-center gap-2 w-full lg:w-auto relative order-2">
+            <div class="relative w-full lg:w-auto" ref="dropdownContainer">
+              <button 
+                @click="toggleDropdown"
+                class="flex items-center justify-between gap-3 w-full lg:w-[220px] px-4 py-3.5 rounded-md text-sm font-normal transition-all whitespace-nowrap border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#1F64E1] focus:border-[#1F64E1]"
               >
-                <div role="menu" aria-orientation="vertical">
-                  <button 
-                    v-for="option in brandOptions"
-                    :key="option.value"
-                    @click="selectBrand(option.value)"
-                    style="-webkit-tap-highlight-color: transparent;"
-                    class="flex items-center w-full px-4 py-2 text-sm text-gray-700 text-left bg-white transition-all duration-75 select-none touch-manipulation hover:bg-[#1F64E1] hover:text-white active:bg-[#1F64E1] active:text-white outline-none"
-                  >
-                    {{ option.label }}
-                  </button>
+                <div class="flex items-center gap-2 text-gray-500">
+                  <Filter class="w-4 h-4"/> 
+                  <span class="text-gray-700">{{ currentCategoryLabel }}</span>
                 </div>
-              </div>
-            </transition>
-          </div>
+                <ChevronDown class="w-4 h-4 text-gray-400" /> 
+              </button>
+
+              <transition
+                enter-active-class="transition ease-out duration-100"
+                enter-from-class="transform opacity-0 scale-95"
+                enter-to-class="transform opacity-100 scale-100"
+                leave-active-class="transition ease-in duration-75"
+                leave-from-class="transform opacity-100 scale-100"
+                leave-to-class="transform opacity-0 scale-95"
+              >
+                <div 
+                  v-if="isDropdownOpen"
+                  class="absolute left-0 lg:right-0 lg:left-auto mt-2 w-full rounded-md shadow-xl bg-white ring-1 ring-black ring-opacity-5 z-50 overflow-hidden"
+                >
+                  <div role="menu" aria-orientation="vertical">
+                    <button 
+                      v-for="category in categories"
+                      :key="category.uuid"
+                      @click="selectCategory(category.uuid)"
+                      style="-webkit-tap-highlight-color: transparent;"
+                      class="flex items-center w-full px-4 py-2 text-sm text-gray-700 text-left bg-white transition-all duration-75 select-none touch-manipulation hover:bg-[#1F64E1] hover:text-white active:bg-[#1F64E1] active:text-white outline-none"
+                    >
+                      {{ category.name }}
+                    </button>
+                  </div>
+                </div>
+              </transition>
+            </div>
+        </div>
+
       </div>
-
     </div>
-  </div>
-</section>
+  </section>
 
+  <!-- Products Grid Section -->
   <section id="proyek" class="pt-12 pb-20 bg-gray-50 min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div id="project-grid" class="relative min-h-[400px]">
         
-        <div v-if="filteredProjects.length === 0" class="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-dashed border-gray-200">
+        <!-- Loading State -->
+        <div v-if="isLoadingProducts" class="flex flex-col items-center justify-center py-20">
+          <Loader2 class="w-12 h-12 animate-spin text-blue-600 mb-4" />
+          <p class="text-gray-500 font-medium">Memuat produk...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="fetchError" class="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-dashed border-red-200">
+          <AlertCircle class="w-16 h-16 text-red-500 mb-4" />
+          <h3 class="text-lg font-semibold text-gray-900">{{ fetchError }}</h3>
+          <p class="text-gray-500 max-w-xs mx-auto mt-1 mb-6 text-sm">Terjadi kesalahan saat memuat produk.</p>
+          <button @click="fetchProducts" class="px-6 py-2.5 rounded-full bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 transition-colors">Coba Lagi</button>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else-if="products.length === 0" class="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-dashed border-gray-200">
             <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-400">
                 <Search size="28"/>
             </div>
             <h3 class="text-lg font-semibold text-gray-900">Produk tidak ditemukan</h3>
-            <p class="text-gray-500 max-w-xs mx-auto mt-1 mb-6 text-sm">Tidak ada produk untuk merek atau kata kunci ini.</p>
+            <p class="text-gray-500 max-w-xs mx-auto mt-1 mb-6 text-sm">Tidak ada produk untuk kategori atau kata kunci ini.</p>
             <button @click="resetFilter" class="px-6 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors">Reset Filter</button>
         </div>
 
+        <!-- Products Grid -->
         <transition-group
+          v-else
           tag="div"
           class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 relative"
           enter-active-class="transition-all duration-500 ease-out delay-100"
@@ -435,29 +541,37 @@ export default {
           move-class="transition-all duration-500 ease-in-out"
         >
             <div
-              v-for="(project) in paginatedProjects"
-              :key="project.id" 
+              v-for="product in products"
+              :key="product.id" 
               class="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-200 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
             >
               <div class="relative aspect-4/3 overflow-hidden bg-gray-100">
                 <img
-                  :src="project.image"
-                  :alt="project.title"
+                  :src="product.image"
+                  :alt="product.title"
                   class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out"
+                  onerror="this.src='https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=800'"
                 />
                 <div class="absolute inset-0 bg-linear-to-t from-black/50 to-transparent opacity-60"></div>
+                
+                <!-- Stock Badge -->
+                <div v-if="product.stock > 0" class="absolute top-3 right-3">
+                  <span class="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    Ready Stock
+                  </span>
+                </div>
               </div>
 
              <div class="p-5 flex flex-col grow">
                 <h3 
                   :class="['text-[16px] font-bold text-gray-900 mb-3 transition-colors leading-snug', activeTheme.titleHover]"
                 >
-                  {{ project.title }}
+                  {{ product.title }}
                 </h3>
 
                 <div class="space-y-2 mb-6 grow">
                   <div
-                    v-for="(spec, idx) in project.specs"
+                    v-for="(spec, idx) in product.specs"
                     :key="idx"
                     class="flex items-center justify-between text-xs border-b border-gray-50 pb-1.5 last:border-0"
                   >
@@ -468,7 +582,7 @@ export default {
 
                 <div class="flex gap-2 mt-auto">
                    <button
-                    @click="goToDetail(project.id)"
+                    @click="goToDetail(product.uuid)"
                     class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-300 bg-gray-50 text-gray-700 group-hover:scale-105 group-hover:shadow-md hover:bg-blue-500 hover:text-white hover:shadow-lg hover:shadow-blue-200 cursor-pointer"
                   >
                     Lihat Detail
@@ -482,7 +596,8 @@ export default {
 
       </div>
 
-      <div v-if="totalPages > 1" class="mt-16 flex flex-col items-center justify-center">
+      <!-- Pagination -->
+      <div v-if="totalPages > 1 && !isLoadingProducts" class="mt-16 flex flex-col items-center justify-center">
         <div class="flex items-center gap-3">
           <button 
             @click="changePage(currentPage - 1)" 
@@ -513,6 +628,7 @@ export default {
     </div>
   </section>
 
+  <!-- CTA Section -->
   <section class="py-16 md:py-24 bg-linear-to-r from-[#F0F9FF] to-[#FFFBF0] border-t border-blue-50/50 relative">
   <div class="max-w-4xl mx-auto px-4 relative z-10 text-center">
     

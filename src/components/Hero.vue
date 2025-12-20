@@ -16,17 +16,21 @@ import {
   Info,
   Loader2,
   HelpCircle,
-  ClipboardList
+  ClipboardList,
+  AlertCircle
 } from 'lucide-vue-next'
+import apiClient from '@/api/axios'
 
 export default {
   name: 'Hero',
   components: { 
-    ChevronLeft, ChevronRight, ShoppingCart, CalendarClock, Wrench, X, Plus, Trash2, Check, ChevronDown, Building2, Info, Loader2, HelpCircle, ClipboardList
+    ChevronLeft, ChevronRight, ShoppingCart, CalendarClock, Wrench, X, Plus, Trash2, Check, 
+    ChevronDown, Building2, Info, Loader2, HelpCircle, ClipboardList, AlertCircle
   },
   setup() {
     const router = useRouter()
     const currentSlide = ref(0)
+    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
     
     // --- 0. LOGIKA FEEDBACK KLIK (BARU) ---
     const activeServiceIndex = ref(null)
@@ -52,28 +56,73 @@ export default {
 
     const tenantOptions = ['Pribadi', 'Perusahaan']
     
-    // --- DATA & SCROLL LOGIC ---
-    const allProducts = [
-      { id: 1, name: 'Genset Silent 5 kVA', price: 'Rp 3.500.000', image: '/genset.png' },
-      { id: 2, name: 'Genset Open 20 kVA', price: 'Rp 7.000.000', image: '/genset.png' },
-      { id: 3, name: 'Genset Perkins 60 kVA', price: 'Rp 15.000.000', image: '/genset.png' },
-      { id: 4, name: 'Genset Cummins 100 kVA', price: 'Rp 25.000.000', image: '/genset.png' },
-      { id: 5, name: 'Portable Honda 2 kVA', price: 'Rp 1.500.000', image: '/genset.png' },
-      { id: 6, name: 'Genset Yanmar 10 kVA', price: 'Rp 4.500.000', image: '/genset.png' },
-      { id: 7, name: 'Genset Volvo 200 kVA', price: 'Rp 45.000.000', image: '/genset.png' },
-      { id: 8, name: 'Genset Deutz 80 kVA', price: 'Rp 18.000.000', image: '/genset.png' },
-      { id: 9, name: 'Genset Mitsubishi 30 kVA', price: 'Rp 9.000.000', image: '/genset.png' },
-      { id: 10, name: 'Genset Isuzu 40 kVA', price: 'Rp 11.000.000', image: '/genset.png' }
-    ]
+    // --- DATA & SCROLL LOGIC (UPDATE: Fetch dari API) ---
+    const allProducts = ref([])
     const visibleProducts = ref([]) 
-    const isLoadingProducts = ref(false) 
+    const isLoadingProducts = ref(false)
+    const isFetchingProducts = ref(false)
+    const fetchError = ref(null)
     const displayedCount = ref(0)
     const initialLoad = 5
     const loadStep = 3
 
+    // Fetch products from API
+    const fetchRentalProducts = async () => {
+      try {
+        isFetchingProducts.value = true
+        fetchError.value = null
+
+        const response = await apiClient.get('/api/public/products', {
+          params: {
+            page: 1,
+            limit: 50 // Ambil banyak untuk rental
+          }
+        })
+
+        if (response.data.meta.success) {
+          allProducts.value = response.data.data
+            .filter(product => product.rent_price && product.rent_price > 0) // Filter hanya yang ada rent_price
+            .map(product => {
+              const spec = product.specifications?.[0] || {}
+              return {
+                id: product.uuid,
+                uuid: product.uuid,
+                name: product.title,
+                price: formatRupiah(product.rent_price),
+                rawPrice: product.rent_price,
+                image: product.image 
+                  ? `${baseURL}/${product.image}` 
+                  : '/genset.png',
+                brand: spec.brand || 'N/A',
+                model: spec.model || 'N/A',
+                primePower: spec.prime_power || 'N/A',
+                stock: product.stock
+              }
+            })
+        }
+      } catch (error) {
+        console.error('Error fetching rental products:', error)
+        fetchError.value = 'Gagal memuat produk rental'
+        allProducts.value = []
+      } finally {
+        isFetchingProducts.value = false
+      }
+    }
+
+    // Format Rupiah helper
+    const formatRupiah = (amount) => {
+      if (!amount) return 'Rp 0'
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(amount)
+    }
+
     const initializeProducts = () => {
       displayedCount.value = initialLoad
-      visibleProducts.value = allProducts.slice(0, displayedCount.value)
+      visibleProducts.value = allProducts.value.slice(0, displayedCount.value)
       isLoadingProducts.value = false
     }
 
@@ -83,14 +132,14 @@ export default {
     }
 
     const loadMoreProducts = () => {
-      if (isLoadingProducts.value || displayedCount.value >= allProducts.length) return
+      if (isLoadingProducts.value || displayedCount.value >= allProducts.value.length) return
       isLoadingProducts.value = true
       setTimeout(() => {
-        const nextBatch = allProducts.slice(displayedCount.value, displayedCount.value + loadStep)
+        const nextBatch = allProducts.value.slice(displayedCount.value, displayedCount.value + loadStep)
         visibleProducts.value.push(...nextBatch)
         displayedCount.value += loadStep
         isLoadingProducts.value = false
-      }, 1000)
+      }, 500)
     }
 
     // --- GLOBAL CLICK HANDLER ---
@@ -108,13 +157,21 @@ export default {
     const clearServiceError = (field) => { serviceErrors.value[field] = false }
 
     // --- ACTIONS ---
-    const openRentalModal = () => {
+    const openRentalModal = async () => {
+      // Fetch products jika belum ada
+      if (allProducts.value.length === 0 && !isFetchingProducts.value) {
+        await fetchRentalProducts()
+      }
       initializeProducts() 
       Object.keys(rentalErrors.value).forEach(key => rentalErrors.value[key] = false)
       isRentalModalOpen.value = true
       stopAutoPlay()
     }
-    const closeRentalModal = () => { isRentalModalOpen.value = false; startAutoPlay() }
+    
+    const closeRentalModal = () => { 
+      isRentalModalOpen.value = false
+      startAutoPlay() 
+    }
 
     const openServiceModal = () => {
       Object.keys(serviceErrors.value).forEach(key => serviceErrors.value[key] = false)
@@ -261,14 +318,12 @@ export default {
     const handleServiceClick = async (service, index) => {
       activeServiceIndex.value = index
       
-      // Jeda 150ms agar warna biru terlihat di HP
       await new Promise(resolve => setTimeout(resolve, 150))
 
       if (service.actionType === 'rentalModal') openRentalModal()
       else if (service.actionType === 'serviceModal') openServiceModal()
       else if (service.path) router.push(service.path)
 
-      // Reset index setelah aksi jalan
       setTimeout(() => { activeServiceIndex.value = null }, 500)
     }
 
@@ -279,7 +334,7 @@ export default {
       currentSlide, slides, services, nextSlide, prevSlide, stopAutoPlay, startAutoPlay, handleServiceClick, activeServiceIndex,
       isRentalModalOpen, closeRentalModal, rentalForm, rentalErrors, tenantOptions, 
       toggleProductSelection, removeProduct, isProductSelected, submitRental,
-      visibleProducts, handleScroll, isLoadingProducts,
+      visibleProducts, handleScroll, isLoadingProducts, isFetchingProducts, fetchError,
       validateRentalField, sanitizePhoneInput, toggleCustomRequest,
       selectedProductsRef, allProducts, handleGlobalClick, clearRentalError,
       isServiceModalOpen, closeServiceModal, serviceForm, serviceErrors, submitService, validateServiceField, clearServiceError
@@ -384,6 +439,7 @@ export default {
   </div>
 </div>
 
+   <!-- Rental Modal (UPDATED dengan API) -->
   <teleport to="body">
     <transition name="modal-fade">
       <div 
@@ -399,6 +455,7 @@ export default {
             <X class="w-6 h-6" />
           </button>
 
+          <!-- Form Section (Tetap sama) -->
           <div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col overflow-y-auto">
             <div class="mb-6">
               <div class="flex items-center gap-2 mb-2">
@@ -427,7 +484,7 @@ export default {
                 
                 <div v-if="rentalForm.selectedProducts.length > 0" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
                   <div v-for="(item, index) in rentalForm.selectedProducts" :key="item.id" class="flex gap-3 items-center bg-white p-2.5 rounded-lg shadow-sm border border-blue-200">
-                    <img :src="item.image" alt="Selected Product" class="w-12 h-12 object-cover rounded-md border border-gray-100" />
+                    <img :src="item.image" alt="Selected Product" class="w-12 h-12 object-cover rounded-md border border-gray-100" onerror="this.src='/genset.png'" />
                     <div class="flex-1">
                       <p class="font-bold text-blue-700 text-xs md:text-sm">{{ item.name }}</p>
                       <p class="text-xs font-semibold text-orange-500 mt-1">{{ item.price }} / bln</p>
@@ -446,6 +503,7 @@ export default {
                 <p v-if="rentalErrors.selectedProducts" class="text-red-500 text-xs mt-2 text-center font-medium">Mohon pilih unit genset atau centang opsi konsultasi</p>
               </div>
 
+              <!-- Form fields tetap sama (name, tenant, company, phone, duration, location, notes) -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">{{ rentalForm.tenantType === 'Perusahaan' ? 'Nama Lengkap / PIC' : 'Nama Lengkap' }} <span class="text-red-500">*</span></label>
@@ -514,14 +572,38 @@ export default {
             </form>
           </div>
 
+          <!-- Products List Section (UPDATED dengan API) -->
           <div class="w-full md:w-1/2 bg-gray-50 border-t md:border-t-0 md:border-l border-gray-200 p-6 md:p-8 flex flex-col h-full overflow-hidden min-h-0">
             <div class="flex items-center mb-4 pb-2 border-b border-gray-200/60 shrink-0">
               <h3 class="font-bold text-gray-800 text-lg">Pilih Unit Genset</h3>
             </div>
-            <div class="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar relative min-h-0" @scroll="handleScroll">
+
+            <!-- Loading State -->
+            <div v-if="isFetchingProducts" class="flex-1 flex flex-col items-center justify-center">
+              <Loader2 class="w-10 h-10 animate-spin text-blue-600 mb-3" />
+              <p class="text-sm text-gray-500 font-medium">Memuat produk rental...</p>
+            </div>
+
+            <!-- Error State -->
+            <div v-else-if="fetchError" class="flex-1 flex flex-col items-center justify-center p-4">
+              <AlertCircle class="w-12 h-12 text-red-500 mb-3" />
+              <p class="text-sm text-red-600 font-medium text-center">{{ fetchError }}</p>
+              <button @click="fetchRentalProducts" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                Coba Lagi
+              </button>
+            </div>
+
+            <!-- Empty State -->
+            <div v-else-if="allProducts.length === 0" class="flex-1 flex flex-col items-center justify-center">
+              <ShoppingCart class="w-16 h-16 text-gray-300 mb-3" />
+              <p class="text-sm text-gray-500">Belum ada produk rental tersedia</p>
+            </div>
+
+            <!-- Products List -->
+            <div v-else class="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar relative min-h-0" @scroll="handleScroll">
               <div v-for="product in visibleProducts" :key="product.id" class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex gap-3 items-center group product-item">
                 <div class="w-20 h-20 shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-100">
-                  <img :src="product.image" :alt="product.name" class="w-full h-full object-cover" />
+                  <img :src="product.image" :alt="product.name" class="w-full h-full object-cover" onerror="this.src='/genset.png'" />
                 </div>
                 <div class="flex-1">
                   <h4 class="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">{{ product.name }}</h4>
@@ -535,6 +617,8 @@ export default {
               <div v-if="isLoadingProducts" class="flex justify-center items-center py-4"><Loader2 class="w-6 h-6 animate-spin text-blue-600" /><span class="ml-2 text-sm text-gray-500 font-medium">Memuat produk lainnya...</span></div>
               <div v-if="!isLoadingProducts && visibleProducts.length >= allProducts.length" class="text-center py-4 text-xs text-gray-400 font-medium">Semua produk telah ditampilkan</div>
             </div>
+
+            <!-- Consultation Checkbox -->
             <div class="p-4 border-t border-gray-200 bg-blue-50/50 mt-auto">
                 <label class="flex items-start gap-3 cursor-pointer group">
                     <div class="relative flex items-center">

@@ -3,8 +3,9 @@ import {
   Building2, Factory, ShoppingBag, Hotel, MapPin,
   ChevronLeft, ChevronRight, Award, CheckCircle,
   Smile, Clock, Gauge, ArrowRight, Search, Filter,
-  Wrench, Zap, MessageCircle, Phone, ChevronDown
+  Wrench, Zap, MessageCircle, Phone, ChevronDown, Loader2, AlertCircle
 } from 'lucide-vue-next'
+import apiClient from '@/api/axios'
 
 export default {
   name: 'Projects',
@@ -13,60 +14,38 @@ export default {
     Building2, Factory, ShoppingBag, Hotel, MapPin,
     ChevronLeft, ChevronRight, Award, CheckCircle,
     Smile, Clock, Gauge, ArrowRight, Search, Filter,
-    Wrench, Zap, MessageCircle, Phone, ChevronDown
+    Wrench, Zap, MessageCircle, Phone, ChevronDown, Loader2, AlertCircle
   },
 
   data() {
     return {
+      baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+      
+      // Search & Filter
       searchQuery: '',
       selectedCategory: 'all', 
       isDropdownOpen: false, 
+      
+      // Pagination
       currentPage: 1,
       itemsPerPage: 8,
+      totalProjects: 0,
 
-      categoryOptions: [
-        { value: 'all', label: 'Semua', icon: 'Filter' },
-        { value: 'perbaikan', label: 'Perbaikan', icon: 'Wrench' },
-        { value: 'penyewaan', label: 'Penyewaan', icon: 'Clock' },
-        { value: 'instalasi', label: 'Instalasi', icon: 'Zap' }
-      ],
-
-      projects: [
-        { title: 'Rewinding Motor Blower Palka', category: 'perbaikan', capacity: '5,5 KW / 1500 Rpm', location: 'Bandar Lampung', image: 'https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Overhaul Mesin Kapal', category: 'perbaikan', capacity: 'Nigata, 2x5000 kW', location: 'Pelabuhan Lopana', image: 'https://images.pexels.com/photos/1267338/pexels-photo-1267338.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Service Rutin Genset Hotel', category: 'perbaikan', capacity: 'Deutz, 2x500 kVA', location: 'Cilacap', image: 'https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Rewinding Dinamo Conveyor', category: 'perbaikan', capacity: '30 KW', location: 'Palembang', image: 'https://images.pexels.com/photos/190574/pexels-photo-190574.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Rewinding Motor Pompa Hydrant', category: 'perbaikan', capacity: '75 KW', location: 'Jakarta Selatan', image: 'https://images.pexels.com/photos/534220/pexels-photo-534220.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Overhaul Genset Pabrik Tekstil', category: 'perbaikan', capacity: 'Cummins, 1000 kVA', location: 'Bandung', image: 'https://images.pexels.com/photos/162553/keys-workshop-mechanic-tools-162553.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Perbaikan Panel Control Boiler', category: 'perbaikan', capacity: 'PLC System', location: 'Cikarang', image: 'https://images.pexels.com/photos/257736/pexels-photo-257736.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Rewinding Generator', category: 'perbaikan', capacity: '500 kVA', location: 'Surabaya', image: 'https://images.pexels.com/photos/159298/gears-cogs-machine-machinery-159298.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Service Rutin Motor Cooling Tower', category: 'perbaikan', capacity: '45 KW', location: 'Tangerang', image: 'https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Instalasi Genset Pabrik Baru', category: 'instalasi', capacity: '3x3000 kVA', location: 'Jakarta Industrial Park', image: 'https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Pemasangan Power Plant Baru', category: 'instalasi', capacity: 'Cummins, 1x3000 kVA', location: 'Pasuruan', image: 'https://images.pexels.com/photos/210881/pexels-photo-210881.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Pengadaan Genset Resort Bali', category: 'instalasi', capacity: 'CAT, 2x2000 kVA', location: 'Nusa Dua, Bali', image: 'https://images.pexels.com/photos/159358/construction-site-build-construction-work-159358.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Instalasi Listrik Gudang Logistik', category: 'instalasi', capacity: '197 kVA', location: 'Karawang', image: 'https://images.pexels.com/photos/1216541/pexels-photo-1216541.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Pemasangan Genset Apartemen', category: 'instalasi', capacity: 'Perkins, 2x1000 kVA', location: 'Bekasi', image: 'https://images.pexels.com/photos/585419/pexels-photo-585419.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Instalasi Panel Synchronize', category: 'instalasi', capacity: '4x500 kVA', location: 'Makassar', image: 'https://images.pexels.com/photos/1036936/pexels-photo-1036936.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Pemasangan Cable Tray & Ladder', category: 'instalasi', capacity: 'Gedung Bertingkat', location: 'Jakarta Barat', image: 'https://images.pexels.com/photos/224924/pexels-photo-224924.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Instalasi Penerangan Jalan Umum', category: 'instalasi', capacity: 'PJU Solar Cell', location: 'Kalimantan', image: 'https://images.pexels.com/photos/378271/pexels-photo-378271.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Pemasangan Trafo Distribusi', category: 'instalasi', capacity: '2000 kVA', location: 'Cilegon', image: 'https://images.pexels.com/photos/1431664/pexels-photo-1431664.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Instalasi Panel ATS/AMF Gedung', category: 'instalasi', capacity: 'Automatic System', location: 'Sudirman, Jakarta', image: 'https://images.pexels.com/photos/209251/pexels-photo-209251.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Sewa Genset Event Mall', category: 'penyewaan', capacity: 'KOHLER, 5x200 kVA', location: 'Surabaya Center', image: 'https://images.pexels.com/photos/974320/pexels-photo-974320.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Sewa Genset Proyek Tol', category: 'penyewaan', capacity: 'Perkins, 4x1500 kVA', location: 'Bandung', image: 'https://images.pexels.com/photos/14613/pexels-photo-14613.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Sewa Genset Backup RS', category: 'penyewaan', capacity: '500 kVA', location: 'Medan', image: 'https://images.pexels.com/photos/269077/pexels-photo-269077.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Sewa Genset Wedding Reception', category: 'penyewaan', capacity: '60 kVA Silent', location: 'Sentul, Bogor', image: 'https://images.pexels.com/photos/169198/pexels-photo-169198.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Rental Genset Backup Server', category: 'penyewaan', capacity: '250 kVA', location: 'Jakarta Selatan', image: 'https://images.pexels.com/photos/1148820/pexels-photo-1148820.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Sewa Genset Proyek Jembatan', category: 'penyewaan', capacity: '150 kVA', location: 'Palembang', image: 'https://images.pexels.com/photos/176342/pexels-photo-176342.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Rental Genset Pameran Otomotif', category: 'penyewaan', capacity: '500 kVA', location: 'BSD City', image: 'https://images.pexels.com/photos/2365572/pexels-photo-2365572.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Sewa Genset Maintenance PLN', category: 'penyewaan', capacity: '1000 kVA', location: 'Semarang', image: 'https://images.pexels.com/photos/459728/pexels-photo-459728.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Sewa Genset Konser Musik Outdoor', category: 'penyewaan', capacity: '2x500 kVA Silent', location: 'ICE BSD', image: 'https://images.pexels.com/photos/1190298/pexels-photo-1190298.jpeg?auto=compress&cs=tinysrgb&w=800' },
-        { title: 'Rental Load Bank Testing', category: 'penyewaan', capacity: '1000 KW', location: 'PLTU Jawa 7', image: 'https://images.pexels.com/photos/1216589/pexels-photo-1216589.jpeg?auto=compress&cs=tinysrgb&w=800' }
-      ]
+      // Data
+      projects: [],
+      categories: [],
+      
+      // State
+      isLoading: false,
+      isFetchingCategories: false,
+      fetchError: null
     }
   },
 
-  mounted() {
+  async mounted() {
     document.addEventListener('click', this.handleClickOutside)
+    await this.fetchCategories()
+    await this.fetchProjects()
   },
 
   beforeUnmount() {
@@ -74,35 +53,21 @@ export default {
   },
 
   computed: {
-    filteredProjects() {
-      return this.projects.filter(project => {
-        const categoryMatch = this.selectedCategory === 'all' || project.category === this.selectedCategory
-        const searchLower = this.searchQuery.toLowerCase()
-        const searchMatch = 
-          project.title.toLowerCase().includes(searchLower) || 
-          project.location.toLowerCase().includes(searchLower)
-        return categoryMatch && searchMatch
-      })
-    },
-
-    paginatedProjects() {
-      const start = (this.currentPage - 1) * this.itemsPerPage
-      const end = start + this.itemsPerPage
-      return this.filteredProjects.slice(start, end)
-    },
-
     totalPages() {
-      return Math.ceil(this.filteredProjects.length / this.itemsPerPage)
+      return Math.ceil(this.totalProjects / this.itemsPerPage)
     },
 
     searchResultText() {
-      const option = this.categoryOptions.find(opt => opt.value === this.selectedCategory);
-      return `Proyek ${option ? option.label.toLowerCase() : ''} ditemukan`;
+      if (this.totalProjects === 0) return 'Tidak ada proyek ditemukan'
+      const option = this.categories.find(opt => opt.slug === this.selectedCategory)
+      const categoryLabel = option ? option.name.toLowerCase() : 'semua'
+      return `${this.totalProjects} Proyek ${categoryLabel} ditemukan`
     },
 
     currentCategoryLabel() {
-      const option = this.categoryOptions.find(opt => opt.value === this.selectedCategory);
-      return option ? option.label : 'Semua';
+      if (this.selectedCategory === 'all') return 'Semua'
+      const option = this.categories.find(opt => opt.slug === this.selectedCategory)
+      return option ? option.name : 'Semua'
     },
 
     activeTheme() {
@@ -143,17 +108,129 @@ export default {
           dropdownRing: 'focus:ring-[#1F64E1] focus:border-[#1F64E1]'
         }
       }
+    },
+
+    // Dynamic category options with icons
+    categoryOptions() {
+      return this.categories.map(cat => ({
+        value: cat.slug,
+        label: cat.name,
+        icon: this.getCategoryIcon(cat.slug)
+      }))
+    }
+  },
+
+  watch: {
+    searchQuery() {
+      this.currentPage = 1
+      this.debounceFetchProjects()
+    },
+    selectedCategory() {
+      this.currentPage = 1
+      this.fetchProjects()
+    },
+    currentPage() {
+      this.fetchProjects()
     }
   },
 
   methods: {
+    // Fetch Categories
+    async fetchCategories() {
+      try {
+        this.isFetchingCategories = true
+        const response = await apiClient.get('/api/public/project-categories')
+        
+        if (response.data.meta.success) {
+          this.categories = [
+            { slug: 'all', name: 'Semua' },
+            ...response.data.data
+          ]
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+        this.categories = [
+          { slug: 'all', name: 'Semua' },
+          { slug: 'perbaikan', name: 'Perbaikan' },
+          { slug: 'instalasi', name: 'Instalasi' },
+          { slug: 'penyewaan', name: 'Penyewaan' }
+        ]
+      } finally {
+        this.isFetchingCategories = false
+      }
+    },
+
+    // Fetch Projects
+    async fetchProjects() {
+      try {
+        this.isLoading = true
+        this.fetchError = null
+        
+        const params = {
+          page: this.currentPage,
+          limit: this.itemsPerPage,
+          search: this.searchQuery || undefined,
+          category: this.selectedCategory !== 'all' ? this.selectedCategory : undefined
+        }
+
+        const response = await apiClient.get('/api/public/projects', { params })
+        
+        if (response.data.meta.success) {
+          this.projects = response.data.data.map(project => ({
+            uuid: project.uuid,
+            title: project.project_name,
+            category: project.category?.name || 'Umum',
+            categorySlug: project.category?.slug || 'umum',
+            location: project.location,
+            image: project.image 
+              ? `${this.baseURL}/${project.image}` 
+              : 'https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=800'
+          }))
+          
+          this.totalProjects = response.data.pagination.total
+        }
+      } catch (error) {
+        console.error('Error fetching projects:', error)
+        this.fetchError = 'Gagal memuat data proyek'
+        this.projects = []
+        this.totalProjects = 0
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    // Debounce for search
+    debounceFetchProjects() {
+      clearTimeout(this._searchTimer)
+      this._searchTimer = setTimeout(() => {
+        this.fetchProjects()
+      }, 500)
+    },
+
+    // Get Category Icon
+    getCategoryIcon(slug) {
+      const icons = {
+        'all': 'Filter',
+        'perbaikan': 'Wrench',
+        'instalasi': 'Zap',
+        'penyewaan': 'Clock',
+        'maintenance': 'Gauge'
+      }
+      return icons[slug] || 'Filter'
+    },
+
+    // Pagination
     changePage(page) {
       if (page >= 1 && page <= this.totalPages) {
         this.currentPage = page
-        document.getElementById('project-grid').scrollIntoView({ behavior: 'smooth', block: 'start' })
+        const grid = document.getElementById('project-grid')
+        if (grid) {
+          grid.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
       }
     },
     
+    // Dropdown
     toggleDropdown() {
       this.isDropdownOpen = !this.isDropdownOpen
     },
@@ -161,7 +238,6 @@ export default {
     selectCategory(category) {
       this.selectedCategory = category
       this.isDropdownOpen = false
-      this.currentPage = 1
     },
 
     handleClickOutside(event) {
@@ -169,12 +245,19 @@ export default {
       if (this.isDropdownOpen && dropdown && !dropdown.contains(event.target)) {
         this.isDropdownOpen = false
       }
+    },
+
+    resetFilter() {
+      this.selectedCategory = 'all'
+      this.searchQuery = ''
+      this.currentPage = 1
     }
   }
 }
 </script>
 
 <template>
+  <!-- Hero Section -->
   <section class="relative flex flex-col justify-center items-center text-center py-18 md:py-20 mt-20 md:mt-20 bg-[#1F65E2] overflow-hidden">
     <div class="absolute inset-0 opacity-10 bg-radial from-white via-transparent to-transparent"></div>
     <div class="relative z-10 flex flex-col items-center px-4 max-w-4xl">
@@ -187,6 +270,7 @@ export default {
     </div>
   </section>
 
+  <!-- Search & Filter Section -->
   <section class="bg-white border-b border-gray-200 py-7 relative z-20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 lg:gap-6"> 
@@ -201,7 +285,7 @@ export default {
               type="text" 
               class="block w-full pl-12 pr-4 py-3.5 border border-gray-300 rounded-lg bg-white placeholder-gray-400 focus:outline-none focus:ring-1 text-sm transition duration-150" 
               :class="activeTheme.dropdownRing"
-              placeholder="Cari nama proyek..." 
+              placeholder="Cari nama proyek atau lokasi..." 
             />
           </div>
           <p class="hidden lg:block mt-3 ml-1 text-[16px] font-medium text-[#4B5563]">
@@ -220,6 +304,7 @@ export default {
               <Wrench v-else-if="selectedCategory === 'perbaikan'" class="w-4 h-4"/>
               <Clock v-else-if="selectedCategory === 'penyewaan'" class="w-4 h-4"/>
               <Zap v-else-if="selectedCategory === 'instalasi'" class="w-4 h-4"/>
+              <Gauge v-else class="w-4 h-4"/>
               <span class="text-gray-700">{{ currentCategoryLabel }}</span>
             </div>
             <ChevronDown class="w-4 h-4 text-gray-400" /> 
@@ -261,20 +346,38 @@ export default {
     </div>
   </section>
 
+  <!-- Projects Grid Section -->
   <section id="proyek" class="pt-12 pb-20 bg-gray-50 min-h-screen overflow-x-hidden">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div id="project-grid" class="relative min-h-[400px]">
         
-        <div v-if="filteredProjects.length === 0" class="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-dashed border-gray-200">
+        <!-- Loading State -->
+        <div v-if="isLoading" class="flex flex-col items-center justify-center py-20">
+          <Loader2 class="w-12 h-12 animate-spin text-blue-600 mb-4" />
+          <p class="text-gray-500 font-medium">Memuat proyek...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="fetchError" class="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-dashed border-red-200">
+          <AlertCircle class="w-16 h-16 text-red-500 mb-4" />
+          <h3 class="text-lg font-semibold text-gray-900">{{ fetchError }}</h3>
+          <p class="text-gray-500 max-w-xs mx-auto mt-1 mb-6 text-sm">Terjadi kesalahan saat memuat proyek.</p>
+          <button @click="fetchProjects" class="px-6 py-2.5 rounded-full bg-blue-600 text-white font-medium text-sm hover:bg-blue-700 transition-colors">Coba Lagi</button>
+        </div>
+
+        <!-- Empty State -->
+        <div v-else-if="projects.length === 0" class="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl border border-dashed border-gray-200">
             <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-400">
                 <Search size="28"/>
             </div>
             <h3 class="text-lg font-semibold text-gray-900">Proyek tidak ditemukan</h3>
             <p class="text-gray-500 max-w-xs mx-auto mt-1 mb-6 text-sm">Coba ubah kata kunci pencarian atau kategori filter anda.</p>
-            <button @click="selectedCategory = 'all'; searchQuery = ''" class="px-6 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors">Reset Filter</button>
+            <button @click="resetFilter" class="px-6 py-2.5 rounded-full bg-white border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors">Reset Filter</button>
         </div>
 
+        <!-- Projects Grid -->
         <transition-group
+          v-else
           tag="div"
           class="grid gap-6 grid-cols-1 justify-items-center sm:grid-cols-2 lg:grid-cols-4"
           enter-active-class="transition duration-500 ease-out"
@@ -283,13 +386,25 @@ export default {
           leave-active-class="absolute opacity-0"
         >
           <div
-            v-for="(project) in paginatedProjects"
-            :key="project.title" 
+            v-for="project in projects"
+            :key="project.uuid" 
             :class="['group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full w-[88%] sm:w-full', activeTheme.borderHover]"
           >
             <div class="relative aspect-4/3 overflow-hidden bg-gray-100">
-              <img :src="project.image" :alt="project.title" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out" />
+              <img 
+                :src="project.image" 
+                :alt="project.title" 
+                class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out" 
+                onerror="this.src='https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=800'"
+              />
               <div class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+              
+              <!-- Category Badge -->
+              <div class="absolute top-3 left-3">
+                <span class="bg-blue-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">
+                  {{ project.category }}
+                </span>
+              </div>
             </div>
 
            <div class="p-5 flex flex-col grow bg-white">
@@ -298,7 +413,9 @@ export default {
               </h3>
               <div class="space-y-2 mb-0 grow">
                 <div class="flex items-center justify-between text-xs border-b border-gray-50 pb-1.5 last:border-0">
-                  <span class="text-gray-500 text-[14px] sm:text-[12.5px] flex items-center gap-1.5"><MapPin size="13" class="text-red-400"/> Lokasi</span>
+                  <span class="text-gray-500 text-[14px] sm:text-[12.5px] flex items-center gap-1.5">
+                    <MapPin size="13" class="text-red-400"/> Lokasi
+                  </span>
                   <span class="font-semibold text-[14px] sm:text-[12.5px] text-gray-500">{{ project.location }}</span>
                 </div>
               </div>
@@ -307,7 +424,8 @@ export default {
         </transition-group>
       </div>
 
-      <div v-if="totalPages > 1" class="mt-16 flex flex-col items-center justify-center">
+      <!-- Pagination -->
+      <div v-if="totalPages > 1 && !isLoading" class="mt-16 flex flex-col items-center justify-center">
         <div class="flex items-center gap-3">
           <button 
             @click="changePage(currentPage - 1)" 
@@ -341,6 +459,7 @@ export default {
     </div>
   </section>
 
+  <!-- CTA Section -->
   <section class="py-24 bg-linear-to-r from-[#F0F9FF] to-[#FFFBF0] border-t border-blue-50/50 relative">
     <div class="max-w-4xl mx-auto px-4 relative z-10 text-center">
       <h2 class="text-3xl md:text-[32px] font-extrabold text-[#0F172A] mb-4 tracking-tight">

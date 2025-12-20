@@ -1,78 +1,75 @@
 <script>
 import {
   Building2, Factory, ShoppingBag, Hotel, MapPin,
-  Gauge, ArrowRight 
+  Gauge, ArrowRight, Loader2, AlertCircle
 } from 'lucide-vue-next'
+import apiClient from '@/api/axios'
 
 export default {
   name: 'Projects',
   components: {
     Building2, Factory, ShoppingBag, Hotel, MapPin,
-    Gauge, ArrowRight
+    Gauge, ArrowRight, Loader2, AlertCircle
   },
 
   data() {
     return {
-      projects: [
-        {
-          title: 'Rewinding Motor Blower Palka',
-          category: 'perbaikan',
-          capacity: '5,5 KW / 1500 Rpm',
-          location: 'Bandar Lampung',
-          image: 'https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=800',
-        },
-        {
-          title: 'Instalasi Genset Pabrik',
-          category: 'instalasi',
-          capacity: '3x3000 kVA',
-          location: 'Jakarta Industrial Park',
-          image: 'https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=800',
-        },
-        {
-          title: 'Maintenance Generator Mall',
-          category: 'perbaikan',
-          capacity: 'KOHLER, 5x200 kVA',
-          location: 'Surabaya Center',
-          image: 'https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=800',
-        },
-        {
-          title: 'Overhaul Mesin Kapal',
-          category: 'perbaikan',
-          capacity: 'Nigata, 2x5000 kW',
-          location: 'Pelabuhan Lopana',
-          image: 'https://images.pexels.com/photos/1267338/pexels-photo-1267338.jpeg?auto=compress&cs=tinysrgb&w=800',
-        },
-        {
-          title: 'Service Genset Hotel',
-          category: 'perbaikan',
-          capacity: 'Deutz, 2x500 kVA',
-          location: 'Cilacap',
-          image: 'https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&w=800',
-        },
-        {
-          title: 'Instalasi Power Plant',
-          category: 'instalasi',
-          capacity: 'Cummins, 1x3000 kVA',
-          location: 'Pasuruan',
-          image: 'https://images.pexels.com/photos/1267338/pexels-photo-1267338.jpeg?auto=compress&cs=tinysrgb&w=800',
-        },
-        {
-          title: 'Sewa Genset Proyek Tol',
-          category: 'penyewaan',
-          capacity: 'Perkins, 4x1500 kVA',
-          location: 'Bandung',
-          image: 'https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=800',
-        },
-        {
-          title: 'Genset Resort Bali',
-          category: 'instalasi',
-          capacity: 'CAT, 2x2000 kVA',
-          location: 'Nusa Dua, Bali',
-          image: 'https://images.pexels.com/photos/258154/pexels-photo-258154.jpeg?auto=compress&cs=tinysrgb&w=800',
-        },
-      ],
+      baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+      projects: [],
+      isLoading: false,
+      fetchError: null
     }
   },
+
+  async mounted() {
+    await this.fetchProjects()
+  },
+
+  methods: {
+    async fetchProjects() {
+      try {
+        this.isLoading = true
+        this.fetchError = null
+        
+        const response = await apiClient.get('/api/public/projects', {
+          params: {
+            page: 1,
+            limit: 4 // Hanya 4 untuk homepage
+          }
+        })
+        
+        if (response.data.meta.success) {
+          this.projects = response.data.data.map(project => ({
+            uuid: project.uuid,
+            title: project.project_name,
+            category: project.category?.name || 'Umum',
+            categorySlug: project.category?.slug || 'umum',
+            location: project.location,
+            image: project.image 
+              ? `${this.baseURL}/${project.image}` 
+              : 'https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=800'
+          }))
+        }
+      } catch (error) {
+        console.error('Error fetching projects:', error)
+        this.fetchError = 'Gagal memuat data proyek'
+        this.projects = []
+      } finally {
+        this.isLoading = false
+      }
+    },
+
+    getCategoryIcon(categorySlug) {
+      const icons = {
+        'perbaikan': Factory,
+        'instalasi': Building2,
+        'penyewaan': ShoppingBag,
+        'maintenance': Gauge,
+        'default': Factory
+      }
+      return icons[categorySlug] || icons['default']
+    }
+  }
 }
 </script>
 
@@ -90,7 +87,41 @@ export default {
         </p>
       </div>
 
-      <div class="relative mb-12">
+      <!-- Loading State -->
+      <div v-if="isLoading" class="flex justify-center items-center py-20">
+        <div class="text-center">
+          <Loader2 class="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <p class="text-gray-500 font-medium">Memuat proyek...</p>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="fetchError" class="flex justify-center items-center py-20">
+        <div class="text-center bg-red-50 border border-red-200 rounded-xl p-8 max-w-md">
+          <AlertCircle class="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 class="text-lg font-bold text-red-900 mb-2">{{ fetchError }}</h3>
+          <button 
+            @click="fetchProjects" 
+            class="mt-4 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div v-else-if="projects.length === 0" class="flex justify-center items-center py-20">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Factory class="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 class="text-lg font-semibold text-gray-700">Belum Ada Proyek</h3>
+          <p class="text-gray-500 text-sm mt-2">Proyek akan segera ditampilkan</p>
+        </div>
+      </div>
+
+      <!-- Projects Grid -->
+      <div v-else class="relative mb-12">
         <transition-group 
             tag="div" 
             class="grid gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4"
@@ -99,8 +130,8 @@ export default {
             enter-to-class="opacity-100 translate-y-0"
         >
           <div
-            v-for="(project, index) in projects.slice(0, 4)"
-            :key="index"
+            v-for="(project, index) in projects"
+            :key="project.uuid"
             class="group bg-white rounded-2xl overflow-hidden shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] border border-gray-100 hover:shadow-xl hover:border-blue-200 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
           >
             <div class="relative aspect-[4/3] overflow-hidden bg-gray-100">
@@ -108,8 +139,16 @@ export default {
                 :src="project.image"
                 :alt="project.title"
                 class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-in-out"
+                onerror="this.src='https://images.pexels.com/photos/1797428/pexels-photo-1797428.jpeg?auto=compress&cs=tinysrgb&w=800'"
               />
               <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+              
+              <!-- Category Badge -->
+              <div class="absolute top-3 left-3">
+                <span class="bg-blue-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm">
+                  {{ project.category }}
+                </span>
+              </div>
             </div>
 
             <div class="p-4 sm:p-5 flex flex-col flex-grow bg-white relative z-20">
@@ -119,11 +158,17 @@ export default {
 
               <div class="space-y-2.5 mb-0 flex-grow">
                 <div class="flex items-center justify-between text-[11px] sm:text-xs border-b border-gray-50 pb-2 last:border-0">
-                  <span class="text-gray-500 flex items-center gap-1.5"><Gauge size="13" class="text-blue-400 font-medium"/> Kapasitas</span>
-                  <span class="font-bold text-gray-700 text-right ml-2">{{ project.capacity }}</span>
+                  <span class="text-gray-500 flex items-center gap-1.5">
+                    <component :is="getCategoryIcon(project.categorySlug)" size="13" class="text-blue-400 font-medium"/>
+                    Kategori
+                  </span>
+                  <span class="font-bold text-gray-700 text-right ml-2 capitalize">{{ project.category }}</span>
                 </div>
                 <div class="flex items-center justify-between text-[11px] sm:text-xs border-b border-gray-50 pb-2 last:border-0">
-                  <span class="text-gray-500 flex items-center gap-1.5"><MapPin size="13" class="text-red-400 font-medium"/> Lokasi</span>
+                  <span class="text-gray-500 flex items-center gap-1.5">
+                    <MapPin size="13" class="text-red-400 font-medium"/>
+                    Lokasi
+                  </span>
                   <span class="font-bold text-gray-700 text-right ml-2">{{ project.location }}</span>
                 </div>
               </div>
@@ -132,7 +177,8 @@ export default {
         </transition-group>
       </div>
 
-      <div class="mt-8 sm:mt-10 flex flex-col items-center justify-center">
+      <!-- View All Button -->
+      <div v-if="projects.length > 0" class="mt-8 sm:mt-10 flex flex-col items-center justify-center">
         <router-link 
           to="/projects" 
           class="group inline-flex items-center gap-2 text-base font-bold text-gray-500 transition-colors hover:text-blue-600"
