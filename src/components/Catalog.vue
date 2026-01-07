@@ -105,7 +105,7 @@ export default {
       <!-- Header -->
       <div class="flex flex-col items-center text-center justify-center mb-10 sm:mb-14">
         <h2 class="text-2xl sm:text-4xl font-extrabold text-gray-900 mb-3 tracking-tight">
-          Produk Genset <span class="text-blue-600">Terbaik Kami</span>
+          Produk Genset Kami <span class="text-blue-600"> </span>
         </h2>
         <p class="text-sm sm:text-lg text-gray-600 max-w-xl mx-auto px-4">
           Pilihan genset yang siap bantu kebutuhan daya Anda.
@@ -187,7 +187,7 @@ export default {
 
             <!-- CTA Button -->
             <router-link
-              :to="`/product/${product.uuid}`"
+              :to="`/catalog/${product.uuid}`"
               class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-gray-50 font-bold text-sm transition-all duration-300 text-gray-700 hover:bg-blue-600 hover:text-white group-hover:shadow-blue-200 group-hover:shadow-lg"
             >
               Lihat Detail <ArrowRight size="14"/>

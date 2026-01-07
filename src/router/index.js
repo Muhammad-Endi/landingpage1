@@ -14,43 +14,58 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+      meta: {title: 'Sinar Elektro Sejahtera'}
     },
     {
-      path: '/about',
+      path: '/tentang',
       name: 'about',
       component: AboutView,
+      meta: {title: 'Tentang - Sinar Elektro Sejahtera'}
     },
     {
-      path: '/catalog',
+      path: '/produk',
       name: 'catalog',
       component: CatalogView,
+      meta: {title: 'Produk - Sinar Elektro Sejahtera'}
     },
     {
       // Route baru untuk detail produk
-      path: '/catalog/:id',
+      path: '/produk/:id',
       name: 'product-detail',
       component: ProductDetailView,
+      meta: {title: 'Detail Produk - Sinar Elektro Sejahtera'}
     },
     {
     path: '/tracking',
     name: 'tracking',
-    component: TrackingView
+    component: TrackingView,
+    meta: {title: 'Tracking - Sinar Elektro Sejahtera'}
   },
     {
-      path: '/projects',
+      path: '/proyek',
       name: 'projects',
       component: ProjectsView,
+      meta: {title: 'Proyek - Sinar Elektro Sejahtera'}
     },
     {
-      path: '/contact',
+      path: '/kontak',
       name: 'contact',
       component: ContactView,
+      meta: {title: 'Kontak - Sinar Elektro Sejahtera'}
     },
   ],
   // Agar saat pindah halaman scroll otomatis ke paling atas
   scrollBehavior(to, from, savedPosition) {
     return { top: 0 }
   }
+})
+
+// LOGIKA PENGUBAH JUDUL OTOMATIS
+router.beforeEach((to, from, next) => {
+  // Mengambil title dari meta rute yang dituju, 
+  // Jika rute tidak punya meta title, gunakan default 'Sinar Elektro Sejahtera'
+  document.title = to.meta.title || 'Sinar Elektro Sejahtera'
+  next()
 })
 
 export default router

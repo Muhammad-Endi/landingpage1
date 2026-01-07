@@ -61,7 +61,7 @@ export default {
 
     getCategoryIcon(categorySlug) {
       const icons = {
-        'perbaikan': Factory,
+        // 'perbaikan': Factory,
         'instalasi': Building2,
         'penyewaan': ShoppingBag,
         'maintenance': Gauge,
@@ -158,11 +158,11 @@ export default {
 
               <div class="space-y-2.5 mb-0 flex-grow">
                 <div class="flex items-center justify-between text-[11px] sm:text-xs border-b border-gray-50 pb-2 last:border-0">
-                  <span class="text-gray-500 flex items-center gap-1.5">
+                  <!-- <span class="text-gray-500 flex items-center gap-1.5">
                     <component :is="getCategoryIcon(project.categorySlug)" size="13" class="text-blue-400 font-medium"/>
                     Kategori
-                  </span>
-                  <span class="font-bold text-gray-700 text-right ml-2 capitalize">{{ project.category }}</span>
+                  </span> -->
+                  <!-- <span class="font-bold text-gray-700 text-right ml-2 capitalize">{{ project.category }}</span> -->
                 </div>
                 <div class="flex items-center justify-between text-[11px] sm:text-xs border-b border-gray-50 pb-2 last:border-0">
                   <span class="text-gray-500 flex items-center gap-1.5">

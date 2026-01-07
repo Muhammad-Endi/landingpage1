@@ -146,7 +146,7 @@ export default {
           Hubungi <span class="text-[#FCCC4D]">Kami</span>
         </h1>
         <p class="text-blue-50 text-base md:text-lg font-light leading-relaxed max-w-2xl">
-          Solusi terbaik untuk Elektro Motor dan Genset industri Anda.
+          Solusi terbaik untuk berbagai kebutuhan Anda.
         </p>
       </div>
     </section>
@@ -184,7 +184,7 @@ export default {
                 </div>
 
                 <div class="space-y-2">
-                  <label class="text-sm font-semibold text-gray-700">Skala Kebutuhan</label>
+                  <label class="text-sm font-semibold text-gray-700">Kebutuhan</label>
                   <div class="relative">
                     <select 
                       v-model="form.customerType"
@@ -192,7 +192,7 @@ export default {
                       class="w-full px-4 py-3 rounded-lg border outline-none transition-all text-gray-700 appearance-none cursor-pointer pr-10"
                       :class="errors.customerType ? 'border-red-500 bg-red-50 focus:ring-red-200' : 'bg-gray-50 border-gray-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100'"
                     >
-                      <option value="" disabled selected>Pilih Skala Kebutuhan</option>
+                      <option value="" disabled selected>Pilih Kebutuhan</option>
                       <option value="pribadi">Pribadi</option>
                       <option value="perusahaan">Perusahaan</option>
                     </select>
@@ -201,7 +201,7 @@ export default {
                   <p v-if="errors.customerType" class="text-red-500 text-xs mt-1 font-medium animate-pulse">Wajib diisi</p>
                 </div>
 
-                <div v-if="form.customerType === 'perusahaan'" class="md:col-span-2 space-y-2 animate-fadeIn">
+                <div v-if="form.customerType === 'perusahaan'" class="space-y-2 animate-fadeIn">
                   <label class="text-sm font-semibold text-gray-700">Nama Perusahaan</label>
                   <input 
                     type="text" 
@@ -212,6 +212,25 @@ export default {
                     :class="errors.companyName ? 'border-red-500 bg-red-50 focus:ring-red-200' : 'bg-gray-50 border-gray-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100'"
                   />
                   <p v-if="errors.companyName" class="text-red-500 text-xs mt-1 font-medium animate-pulse">Wajib diisi</p>
+                </div>
+
+                <div class="space-y-2" :class="form.customerType !== 'perusahaan' ? 'md:col-span-1' : ''">
+                  <label class="text-sm font-semibold text-gray-700">Layanan</label>
+                  <div class="relative">
+                    <select 
+                      v-model="form.service"
+                      @change="clearError('service')"
+                      class="w-full px-4 py-3 rounded-lg border outline-none transition-all text-gray-700 appearance-none cursor-pointer pr-10"
+                      :class="errors.service ? 'border-red-500 bg-red-50 focus:ring-red-200' : 'bg-gray-50 border-gray-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100'"
+                    >
+                      <option value="" disabled selected>Pilih Layanan</option>
+                      <option value="pembelian">Pembelian Unit Baru</option>
+                      <option value="penyewaan">Penyewaan</option>
+                      <option value="perbaikan">Perbaikan</option>
+                    </select>
+                    <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-black pointer-events-none" size="20" />
+                  </div>
+                  <p v-if="errors.service" class="text-red-500 text-xs mt-1 font-medium animate-pulse">Wajib diisi</p>
                 </div>
 
                 <div class="space-y-2">
@@ -227,29 +246,9 @@ export default {
                   <p v-if="errors.phone" class="text-red-500 text-xs mt-1 font-medium animate-pulse">Wajib diisi</p>
                 </div>
 
-                <div class="space-y-2">
-                  <label class="text-sm font-semibold text-gray-700">Layanan</label>
-                  <div class="relative">
-                    <select 
-                      v-model="form.service"
-                      @change="clearError('service')"
-                      class="w-full px-4 py-3 rounded-lg border outline-none transition-all text-gray-700 appearance-none cursor-pointer pr-10"
-                      :class="errors.service ? 'border-red-500 bg-red-50 focus:ring-red-200' : 'bg-gray-50 border-gray-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100'"
-                    >
-                      <option value="" disabled selected>Pilih Layanan</option>
-                      <option value="pembelian">Pembelian Unit Baru</option>
-                      <option value="penyewaan">Penyewaan</option>
-                      <option value="perbaikan">Perbaikan</option>
-                      <option value="konsultasi">Konsultasi Umum</option>
-                    </select>
-                    <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 text-black pointer-events-none" size="20" />
-                  </div>
-                  <p v-if="errors.service" class="text-red-500 text-xs mt-1 font-medium animate-pulse">Wajib diisi</p>
-                </div>
-
                 <div 
                   class="space-y-2" 
-                  :class="form.customerType === 'pribadi' || form.customerType === '' ? 'md:col-span-2' : ''"
+                  :class="form.customerType !== 'perusahaan' ? 'md:col-span-2' : ''"
                 >
                   <label class="text-sm font-semibold text-gray-700">Alamat</label>
                   <input 

@@ -583,7 +583,7 @@ export default {
                 <div class="flex gap-2 mt-auto">
                    <button
                     @click="goToDetail(product.uuid)"
-                    class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-300 bg-gray-50 text-gray-700 group-hover:scale-105 group-hover:shadow-md hover:bg-blue-500 hover:text-white hover:shadow-lg hover:shadow-blue-200 cursor-pointer"
+                    class="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-gray-50 font-bold text-sm transition-all duration-300 text-gray-700 hover:bg-blue-600 hover:text-white group-hover:shadow-blue-200 group-hover:shadow-lg"
                   >
                     Lihat Detail
                     <ArrowRight size="16"/>
@@ -826,7 +826,7 @@ export default {
                         <Check class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 w-3.5 h-3.5" />
                     </div>
                     <div class="text-sm text-gray-700 select-none">
-                        <span class="font-medium block text-gray-900 group-hover:text-blue-700 transition-colors">Bingung pilih kapasitas / Unit tidak ada?</span>
+                        <span class="font-medium block text-gray-900 group-hover:text-blue-700 transition-colors">Bingung pilih Unit genset ?</span>
                         <span class="text-xs text-gray-500">Centang ini untuk konsultasi & rekomendasi daya dari tim ahli kami.</span>
                     </div>
                 </label>

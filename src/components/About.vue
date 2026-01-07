@@ -25,7 +25,7 @@ export default {
         { icon: 'Zap', label: 'Proyek Selesai', value: '100+', color: 'text-yellow-600' },
       ],
       services: [
-        'Rewinding Elektro Motor (1 & 3 Phase)',
+        'Rewinding Elektromotor 1 & 3 Phase',
         'Sewa Genset Berbagai Kapasitas',
         'Penjualan Genset & Generator Baru',
         'Garansi Resmi & Transparan',
@@ -101,7 +101,7 @@ export default {
           </div>
 
           <p class="text-lg text-gray-600 leading-relaxed mb-6 text-justify">
-            Berdiri sejak 2009, <strong>Sinar Elektro Sejahtera</strong> adalah workshop spesialis yang bergerak di bidang <em>Rewinding</em> Elektromotor 1 & 3 Phase. Selain itu kami juga menyediakan layanan service, penjualan, serta penyewaan genset.
+            Berdiri sejak 2009, <strong>Sinar Elektro Sejahtera</strong> adalah workshop spesialis yang bergerak di bidang service <em>Rewinding</em> Elektromotor 1 & 3 Phase. Selain itu kami juga menyediakan layanan service genset, penjualan, serta penyewaan genset.
           </p>
           <p class="text-lg text-gray-600 leading-relaxed mb-8 text-justify">
             Melalui teknologi presisi dan teknisi ahli, kami menjamin mesin kembali ke performa maksimal pabrikan.

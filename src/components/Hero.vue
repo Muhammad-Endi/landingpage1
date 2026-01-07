@@ -120,6 +120,21 @@ export default {
       }).format(amount)
     }
 
+    // --- LOGIKA PERHITUNGAN HARGA RENTAL (DISEMPURNAKAN) ---
+    const getMonthlyTotal = () => {
+      return rentalForm.value.selectedProducts.reduce((sum, item) => sum + (item.rawPrice * item.quantity), 0)
+    }
+
+    const getDurationValue = () => {
+      // Mengambil angka saja dari input durasi (misal "2 bulan" jadi 2)
+      const match = rentalForm.value.duration.match(/\d+/)
+      return match ? parseInt(match[0]) : 1
+    }
+
+    const getGrandTotal = () => {
+      return getMonthlyTotal() * getDurationValue()
+    }
+
     const initializeProducts = () => {
       displayedCount.value = initialLoad
       visibleProducts.value = allProducts.value.slice(0, displayedCount.value)
@@ -158,7 +173,6 @@ export default {
 
     // --- ACTIONS ---
     const openRentalModal = async () => {
-      // Fetch products jika belum ada
       if (allProducts.value.length === 0 && !isFetchingProducts.value) {
         await fetchRentalProducts()
       }
@@ -183,6 +197,7 @@ export default {
     // --- VALIDATION RENTAL ---
     const validateRentalField = (field) => {
       if (field === 'selectedProducts') {
+        // Jika isCustomRequest TRUE, maka selectedProducts tidak wajib diisi
         rentalErrors.value.selectedProducts = (rentalForm.value.selectedProducts.length === 0 && !rentalForm.value.isCustomRequest)
         return
       }
@@ -224,13 +239,29 @@ export default {
       e.target.value = value
     }
 
-    const toggleCustomRequest = () => { if(rentalForm.value.isCustomRequest) rentalErrors.value.selectedProducts = false }
+    const toggleCustomRequest = () => { 
+      // Saat checkbox berubah, jalankan validasi ulang untuk produk
+      validateRentalField('selectedProducts')
+    }
     
     const toggleProductSelection = (product) => {
       const index = rentalForm.value.selectedProducts.findIndex(p => p.id === product.id)
-      if (index === -1) rentalForm.value.selectedProducts.push(product)
-      else rentalForm.value.selectedProducts.splice(index, 1)
+      if (index === -1) {
+        rentalForm.value.selectedProducts.push({ ...product, quantity: 1 })
+      } else {
+        rentalForm.value.selectedProducts.splice(index, 1)
+      }
       validateRentalField('selectedProducts')
+    }
+
+    const updateRentalQty = (index, delta) => {
+      const product = rentalForm.value.selectedProducts[index]
+      const newQty = product.quantity + delta
+      if (newQty > 0) {
+        product.quantity = newQty
+      } else {
+        removeProduct(index)
+      }
     }
 
     const removeProduct = async (index) => {
@@ -243,41 +274,68 @@ export default {
     const isProductSelected = (productId) => rentalForm.value.selectedProducts.some(p => p.id === productId)
 
     const submitRental = () => {
-      let hasError = false
-      validateRentalField('selectedProducts')
-      if(rentalErrors.value.selectedProducts) hasError = true
-      const fields = ['name', 'phone', 'tenantType', 'duration', 'location', 'notes']
-      fields.forEach(field => {
-        validateRentalField(field)
-        if(rentalErrors.value[field]) hasError = true
-      })
-      if (rentalForm.value.tenantType === 'Perusahaan') {
-        validateRentalField('companyName')
-        if(rentalErrors.value.companyName) hasError = true
-      }
-      if (hasError) return
+  let hasError = false
+  validateRentalField('selectedProducts')
+  if(rentalErrors.value.selectedProducts) hasError = true
+  const fields = ['name', 'phone', 'tenantType', 'duration', 'location', 'notes']
+  fields.forEach(field => {
+    validateRentalField(field)
+    if(rentalErrors.value[field]) hasError = true
+  })
+  if (rentalForm.value.tenantType === 'Perusahaan') {
+    validateRentalField('companyName')
+    if(rentalErrors.value.companyName) hasError = true
+  }
+  if (hasError) return
 
-      let productListText = ''
-      const hasProduct = rentalForm.value.selectedProducts.length > 0
-      const isChecked = rentalForm.value.isCustomRequest
-      if (hasProduct) {
-        rentalForm.value.selectedProducts.forEach((product, index) => {
-          productListText += `${index + 1}. ${product.name} (${product.price} / bln)\n`
-        })
-      } else if (isChecked) {
-          productListText = "_Saya belum memilih unit dan membutuhkan konsultasi/rekomendasi daya yang tepat._"
-      }
+  let productListText = ''
+  let pricingText = '' // Variabel baru untuk menampung teks harga
 
-      let closingSentence = "Mohon informasinya lebih lanjut untuk ketersediaan dan harga final. Terima kasih."
-      if (hasProduct && isChecked) {
-        closingSentence = "Mohon info ketersediaan dan saran teknis mengenai dayanya. Terima kasih."
-      }
+  // 1. LOGIKA TEKS PRODUK & HARGA
+  if (rentalForm.value.selectedProducts.length > 0) {
+    // Jika ada produk yang dipilih, susun daftar produk dan total harga
+    rentalForm.value.selectedProducts.forEach((product, index) => {
+      const subtotal = product.rawPrice * product.quantity
+      productListText += `${index + 1}. ${product.name} (x${product.quantity})\n`
+      productListText += `   Harga: ${formatRupiah(product.rawPrice)}/ unit / bln\n`
+      productListText += `   Subtotal Unit: ${formatRupiah(subtotal)}/ bln\n\n`
+    })
 
-      const messageTemplate = `Halo Sinar Elektro Sejahtera, \n\nSaya ingin konsultasi sewa unit genset.\n\n*DATA PENYEWA*\nNama Lengkap: ${rentalForm.value.name}\nTipe Penyewa: ${rentalForm.value.tenantType}\n${rentalForm.value.tenantType === 'Perusahaan' ? `Nama Perusahaan: ${rentalForm.value.companyName}\n` : ''}No. WhatsApp: ${rentalForm.value.phone}\nDurasi Sewa: ${rentalForm.value.duration}\nLokasi: ${rentalForm.value.location}\n\n*UNIT YANG DIPILIH*\n${productListText}\n*DETAIL KEBUTUHAN/CATATAN*\n${rentalForm.value.notes}\n\n${closingSentence}`
-      window.open(`https://api.whatsapp.com/send?phone=6289670308822&text=${encodeURIComponent(messageTemplate)}`, '_blank')
-      closeRentalModal()
-      rentalForm.value = { name: '', tenantType: '', companyName: '', phone: '', duration: '', location: '', notes: '', selectedProducts: [], isCustomRequest: false }
-    }
+    // Masukkan rincian harga jika BUKAN custom request (atau jika ada produk terpilih)
+    pricingText = `------------------------------------------
+*Total Sewa: ${formatRupiah(getMonthlyTotal())} / bln*
+*Durasi Sewa: ${rentalForm.value.duration}*
+*ESTIMASI TOTAL KESELURUHAN: ${formatRupiah(getGrandTotal())}*`
+
+  } else if (rentalForm.value.isCustomRequest) {
+    // Jika user mencentang "Bingung pilih unit", pricingText tetap kosong
+    productListText = "_Saya belum memilih unit dan membutuhkan konsultasi/rekomendasi daya yang tepat._\n\n"
+    pricingText = `*Durasi Sewa (Rencana): ${rentalForm.value.duration}*` // Tetap tampilkan durasi saja
+  }
+
+  // 2. TEMPLATE PESAN WA
+  const messageTemplate = `Halo Sinar Elektro Sejahtera,
+
+Saya ingin konsultasi sewa unit genset.
+
+*DATA PENYEWA*
+Nama Lengkap: ${rentalForm.value.name}
+Tipe Penyewa: ${rentalForm.value.tenantType}
+${rentalForm.value.tenantType === 'Perusahaan' ? `Nama Perusahaan: ${rentalForm.value.companyName}\n` : ''}No. WhatsApp: ${rentalForm.value.phone}
+Lokasi: ${rentalForm.value.location}
+
+*RINCIAN SEWA*
+${productListText}${pricingText}
+
+*DETAIL KEBUTUHAN/CATATAN*
+${rentalForm.value.notes}
+
+Mohon informasinya lebih lanjut. Terima kasih.`
+
+  window.open(`https://api.whatsapp.com/send?phone=6289670308822&text=${encodeURIComponent(messageTemplate)}`, '_blank')
+  closeRentalModal()
+  rentalForm.value = { name: '', tenantType: '', companyName: '', phone: '', duration: '', location: '', notes: '', selectedProducts: [], isCustomRequest: false }
+}
 
     const submitService = () => {
       let hasError = false
@@ -291,7 +349,7 @@ export default {
         if(serviceErrors.value.companyName) hasError = true
       }
       if (hasError) return
-      const messageTemplate = `Halo Sinar Elektro Sejahtera, \n\nSaya ingin konsultasi mengenai Perbaikan/Service unit.\n\n*Data Client*\nNama Lengkap: ${serviceForm.value.name}\nTipe Klien: ${serviceForm.value.tenantType}\n${serviceForm.value.tenantType === 'Perusahaan' ? `Nama Perusahaan: ${serviceForm.value.companyName}\n` : ''}No. WhatsApp: ${serviceForm.value.phone}\nLokasi: ${serviceForm.value.location}\n\n*Detail Unit & Kendala*\nJenis Unit: ${serviceForm.value.unitType}\nKendala: ${serviceForm.value.issue}\n\nMohon informasinya untuk estimasi biaya dan jadwal pengecekan teknisi. Terima kasih.`
+      const messageTemplate = `Halo Sinar Elektro Sejahtera, \n\nSaya ingin konsultasi mengenai Perbaikan/Service unit.\n\n*Data Client*\nNama Lengkap: ${serviceForm.value.name}\nTipe Klien: ${serviceForm.value.tenantType}\n${serviceForm.value.tenantType === 'Perusahaan' ? `Nama Perusahaan: ${serviceForm.value.companyName}\n` : ''}No. WhatsApp: ${serviceForm.value.phone}\nLokasi: ${serviceForm.value.location}\n\n*Detail Unit & Kendala*\nNama Unit : ${serviceForm.value.unitType}\nKendala : ${serviceForm.value.issue}\n\nMohon informasinya untuk estimasi biaya dan jadwal pengecekan teknisi. Terima kasih.`
       window.open(`https://api.whatsapp.com/send?phone=6289670308822&text=${encodeURIComponent(messageTemplate)}`, '_blank')
       closeServiceModal()
       serviceForm.value = { name: '', tenantType: '', companyName: '', phone: '', location: '', unitType: '', issue: '' }
@@ -299,12 +357,12 @@ export default {
     
     let autoPlayInterval = null
     const slides = [
-      { image: 'https://images.pexels.com/photos/257736/pexels-photo-257736.jpeg?auto=compress&cs=tinysrgb&w=1600', badge: 'Teknisi Ahli & Berpengalaman', titleLine1: 'Service Rewinding Elektro', titleLine2: 'Motor & Genset', description: 'Melayani service rewinding elektro motor 1 & 3 phase serta service genset generator dengan teknisi kompeten dan berpengalaman lebih dari 15 tahun.' },
-      { image: 'https://images.pexels.com/photos/162553/keys-workshop-mechanic-tools-162553.jpeg?auto=compress&cs=tinysrgb&w=1600', badge: 'Kualitas Terbaik & Teruji', titleLine1: 'Penjualan Genset', titleLine2: 'Berkualitas', description: 'Temukan berbagai pilihan genset berkualitas di Sinar Elektro Sejahtera siap mendukung kebutuhan daya Anda mulai dari industri, perusahaan, hingga rumah tangga.' },
-      { image: 'https://images.pexels.com/photos/1108101/pexels-photo-1108101.jpeg?auto=compress&cs=tinysrgb&w=1600', badge: 'Sewa Mudah, Daya Siap Kapan Saja', titleLine1: 'Sewa Genset Cepat', titleLine2: '& Terpercaya', description: 'Sinar Elektro Sejahtera menyediakan sewa genset untuk acara, proyek, perusahaan, hingga kebutuhan rumah tangga. kami siap kapan pun dibutuhkan.' }
+      { image: '/projek2.jpeg', badge: 'Teknisi Ahli & Berpengalaman', titleLine1: 'Service Rewinding', titleLine2: 'Elektromotor & Genset', description: 'Melayani service Rewinding Elektromotor 1 & 3 phase serta service genset generator dengan teknisi kompeten dan berpengalaman lebih dari 15 tahun.' },
+      { image: '/genset3.png', badge: 'Kualitas Terbaik & Teruji', titleLine1: 'Menjual Unit Genset', titleLine2: 'Baru Berkualitas', description: 'Temukan berbagai pilihan genset berkualitas di Sinar Elektro Sejahtera siap mendukung kebutuhan daya Anda mulai dari industri, perusahaan, hingga rumah tangga.' },
+      { image: '/sewa1.png', badge: 'Sewa Mudah, Daya Siap Kapan Saja', titleLine1: 'Sewa Genset Cepat', titleLine2: '& Terpercaya', description: 'Sinar Elektro Sejahtera menyediakan sewa genset untuk acara, proyek, perusahaan, hingga kebutuhan rumah tangga. kami siap kapan pun dibutuhkan.' }
     ]
     const services = [
-      { title: 'Penjualan', icon: ShoppingCart, desc: 'Unit Genset Baru', color: 'text-green-600', bgIcon: 'bg-green-100', actionType: 'link', path: '/catalog' },
+      { title: 'Beli Unit', icon: ShoppingCart, desc: 'Genset Baru', color: 'text-green-600', bgIcon: 'bg-green-100', actionType: 'link', path: '/catalog' },
       { title: 'Sewa', icon: CalendarClock, desc: 'Genset bulanan', color: 'text-blue-600', bgIcon: 'bg-blue-100', actionType: 'rentalModal', path: '' },
       { title: 'Perbaikan', icon: Wrench, desc: 'Service & Maintenance', color: 'text-red-600', bgIcon: 'bg-red-100', actionType: 'serviceModal', path: '' }
     ]
@@ -314,16 +372,12 @@ export default {
     const startAutoPlay = () => { autoPlayInterval = setInterval(() => nextSlide(), 4000) }
     const stopAutoPlay = () => { if (autoPlayInterval) clearInterval(autoPlayInterval) }
 
-    // --- LOGIKA KLIK TOMBOL SERVICE (DENGAN DELAY) ---
     const handleServiceClick = async (service, index) => {
       activeServiceIndex.value = index
-      
       await new Promise(resolve => setTimeout(resolve, 150))
-
       if (service.actionType === 'rentalModal') openRentalModal()
       else if (service.actionType === 'serviceModal') openServiceModal()
       else if (service.path) router.push(service.path)
-
       setTimeout(() => { activeServiceIndex.value = null }, 500)
     }
 
@@ -337,7 +391,8 @@ export default {
       visibleProducts, handleScroll, isLoadingProducts, isFetchingProducts, fetchError,
       validateRentalField, sanitizePhoneInput, toggleCustomRequest,
       selectedProductsRef, allProducts, handleGlobalClick, clearRentalError,
-      isServiceModalOpen, closeServiceModal, serviceForm, serviceErrors, submitService, validateServiceField, clearServiceError
+      isServiceModalOpen, closeServiceModal, serviceForm, serviceErrors, submitService, validateServiceField, clearServiceError,
+      formatRupiah, updateRentalQty, getMonthlyTotal, getGrandTotal, getDurationValue
     }
   }
 }
@@ -392,13 +447,11 @@ export default {
   <div class="services-wrapper w-full flex justify-center -mt-16 relative z-40 px-4">
   <div class="max-w-6xl w-full">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      
       <div 
         v-for="(service, index) in services" 
         :key="index" 
         @click="handleServiceClick(service, index)" 
         :class="[
-          /* shadow-xl digunakan untuk mengurangi bayangan sedikit saja dari sebelumnya */
           'rounded-xl shadow-xl p-4 flex items-center space-x-4 cursor-pointer select-none group border-b-4 border-transparent',
           activeServiceIndex === index 
             ? 'bg-blue-600 border-blue-700' 
@@ -418,7 +471,6 @@ export default {
             :class="activeServiceIndex === index ? service.color : `${service.color}`" 
           />
         </div>
-
         <div>
           <h3 :class="[
             'font-bold text-lg transition-colors duration-300',
@@ -433,14 +485,12 @@ export default {
             {{ service.desc }}
           </p>
         </div>
-
       </div>
     </div>
   </div>
 </div>
 
-   <!-- Rental Modal (UPDATED dengan API) -->
-  <teleport to="body">
+   <teleport to="body">
     <transition name="modal-fade">
       <div 
         v-if="isRentalModalOpen" 
@@ -455,7 +505,6 @@ export default {
             <X class="w-6 h-6" />
           </button>
 
-          <!-- Form Section (Tetap sama) -->
           <div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col overflow-y-auto">
             <div class="mb-6">
               <div class="flex items-center gap-2 mb-2">
@@ -472,38 +521,66 @@ export default {
                 ref="selectedProductsRef"
                 tabindex="0"
                 @blur="clearRentalError('selectedProducts')"
-                class="p-4 bg-blue-50 border rounded-xl transition-all focus:outline-none"
+                class="p-4 bg-blue-50/50 border rounded-xl transition-all focus:outline-none"
                 :class="rentalErrors.selectedProducts ? 'border-red-500' : 'border-blue-100'"
               >
-                <div class="flex justify-between items-center mb-2">
-                  <h3 class="text-sm font-semibold text-gray-600">Produk yang akan disewa <span class="text-red-500">*</span>:</h3>
-                  <span v-if="rentalForm.selectedProducts.length > 0" class="text-xs font-bold text-blue-600 bg-white px-2 py-1 rounded-full border border-blue-100">
+                <div class="flex justify-between items-center mb-3">
+                  <h3 class="text-sm font-semibold text-gray-600">Produk yang akan disewa <span v-if="!rentalForm.isCustomRequest" class="text-red-500">*</span>:</h3>
+                  <span v-if="rentalForm.selectedProducts.length > 0" class="text-[11px] font-bold text-blue-600 bg-white px-2.5 py-1 rounded-full border border-blue-100 shadow-sm">
                     {{ rentalForm.selectedProducts.length }} Unit
                   </span>
                 </div>
                 
-                <div v-if="rentalForm.selectedProducts.length > 0" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-                  <div v-for="(item, index) in rentalForm.selectedProducts" :key="item.id" class="flex gap-3 items-center bg-white p-2.5 rounded-lg shadow-sm border border-blue-200">
-                    <img :src="item.image" alt="Selected Product" class="w-12 h-12 object-cover rounded-md border border-gray-100" onerror="this.src='/genset.png'" />
-                    <div class="flex-1">
-                      <p class="font-bold text-blue-700 text-xs md:text-sm">{{ item.name }}</p>
-                      <p class="text-xs font-semibold text-orange-500 mt-1">{{ item.price }} / bln</p>
+                <div v-if="rentalForm.selectedProducts.length > 0" class="space-y-3 max-h-56 overflow-y-auto custom-scrollbar pr-1">
+                  <div v-for="(item, index) in rentalForm.selectedProducts" :key="item.id" class="flex gap-2 md:gap-3 items-center bg-white pl-3 py-3 pr-0.5 md:pr-3 rounded-xl shadow-sm border border-blue-100 group">
+                    <img :src="item.image" alt="Selected Product" class="w-14 h-14 object-cover rounded-lg border border-gray-100" onerror="this.src='/genset.png'" />
+                    <div class="flex-1 min-w-0">
+                      <p class="font-bold text-gray-800 text-xs md:text-sm leading-tight truncate">{{ item.name }}</p>
+                      <div class="flex flex-col mt-1">
+                         <span class="text-xs font-bold text-blue-600 whitespace-nowrap">{{ formatRupiah(item.rawPrice * item.quantity) }} <span>/ bln</span></span>
+                      </div>
                     </div>
-                    <button type="button" @click="removeProduct(index)" class="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-full transition-colors self-center">
-                      <Trash2 class="w-4 h-4" />
-                    </button>
+
+                    <div class="flex items-center gap-1 md:gap-2 bg-gray-50 border border-gray-200 rounded-lg p-1 shrink-0">
+                      <button type="button" @click="updateRentalQty(index, -1)" class="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center bg-white hover:bg-red-50 rounded-md text-gray-500 transition-colors shadow-sm active:scale-90">-</button>
+                      <span class="text-xs font-bold w-4 md:w-5 text-center">{{ item.quantity }}</span>
+                      <button type="button" @click="updateRentalQty(index, 1)" class="w-6 h-6 md:w-7 md:h-7 flex items-center justify-center bg-white hover:bg-green-50 rounded-md text-gray-500 transition-colors shadow-sm active:scale-90">+</button>
+                    </div>
                   </div>
                 </div>
 
-                <div v-else class="text-center py-6 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 text-sm flex flex-col items-center justify-center gap-2">
-                   <div class="bg-gray-100 p-3 rounded-full"><ShoppingCart class="w-6 h-6 text-gray-300" /></div>
-                   <span>Belum ada produk dipilih.</span>
-                   <span class="text-blue-500 text-xs font-medium">Klik tanda (+) pada unit genset</span>
+                <div v-else class="text-center py-8 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 text-sm flex flex-col items-center justify-center gap-2 bg-white/50">
+                   <div class="bg-gray-100 p-3 rounded-full mb-1"><ShoppingCart class="w-6 h-6 text-gray-300" /></div>
+                   <span class="font-medium">Keranjang sewa masih kosong</span>
+                   <span class="text-blue-500 text-[11px] font-bold animate-pulse">Klik (+) pada daftar unit genset</span>
                 </div>
-                <p v-if="rentalErrors.selectedProducts" class="text-red-500 text-xs mt-2 text-center font-medium">Mohon pilih unit genset atau centang opsi konsultasi</p>
+
+                <div v-if="rentalForm.selectedProducts.length > 0" class="pt-4 border-t border-dashed border-blue-200 mt-4 space-y-3">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-500 font-medium">Total Sewa (1 Bulan):</span>
+                        <span class="font-bold text-gray-800">{{ formatRupiah(getMonthlyTotal()) }}</span>
+                    </div>
+                    
+                    <div class="bg-blue-600 text-white p-4 rounded-xl shadow-md space-y-2 relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 opacity-10"><CalendarClock :size="80" /></div>
+                        <div class="flex justify-between items-center text-xs opacity-90">
+                            <span>Durasi Sewa:</span>
+                            <span class="font-bold underline">{{ rentalForm.duration || '1 Bulan' }}</span>
+                        </div>
+                        <div class="flex justify-between items-end border-t border-white/20 pt-2">
+                            <div>
+                              <p class="text-[10px] uppercase font-bold opacity-80 tracking-wider">Estimasi Total Keseluruhan</p>
+                              <p class="text-xl font-black text-yellow-300">{{ formatRupiah(getGrandTotal()) }}</p>
+                            </div>
+                            <div class="text-[10px] text-right opacity-70 italic">
+                              </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p v-if="rentalErrors.selectedProducts" class="text-red-500 text-xs mt-3 text-center font-bold bg-red-50 py-1 rounded">⚠️ Mohon pilih unit genset atau centang opsi konsultasi</p>
               </div>
 
-              <!-- Form fields tetap sama (name, tenant, company, phone, duration, location, notes) -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">{{ rentalForm.tenantType === 'Perusahaan' ? 'Nama Lengkap / PIC' : 'Nama Lengkap' }} <span class="text-red-500">*</span></label>
@@ -541,6 +618,7 @@ export default {
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Durasi Sewa <span class="text-red-500">*</span></label>
                   <input v-model="rentalForm.duration" @input="validateRentalField('duration')" @blur="clearRentalError('duration')" type="text" placeholder="Contoh: 1 Bulan" :class="['w-full border rounded-lg px-4 py-2.5 focus:outline-none text-sm bg-gray-50 focus:bg-white', rentalErrors.duration ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500']">
+                  <p class="text-blue-500 text-[10px] mt-1 font-medium tracking-tight">*Masukkan jumlah bulan (misal: 2 bulan)</p>
                   <p v-if="rentalErrors.duration" class="text-red-500 text-xs mt-1">Durasi wajib diisi</p>
                 </div>
               </div>
@@ -565,60 +643,64 @@ export default {
                 </div>
               </div>
 
-              <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-95 flex justify-center items-center gap-2 mt-4">
-                Kirim & Konsultasi via WhatsApp
+              <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-blue-200 transition-all active:scale-95 flex justify-center items-center gap-2 mt-4">
+                Ajukan Sewa via WhatsApp
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
               </button>
             </form>
           </div>
 
-          <!-- Products List Section (UPDATED dengan API) -->
-          <div class="w-full md:w-1/2 bg-gray-50 border-t md:border-t-0 md:border-l border-gray-200 p-6 md:p-8 flex flex-col h-full overflow-hidden min-h-0">
-            <div class="flex items-center mb-4 pb-2 border-b border-gray-200/60 shrink-0">
-              <h3 class="font-bold text-gray-800 text-lg">Pilih Unit Genset</h3>
+          <div class="w-full md:w-1/2 bg-gray-50 border-t md:border-t-0 md:border-l border-gray-200 p-4 md:p-8 flex flex-col h-full overflow-hidden min-h-0">
+            <div class="flex items-center justify-between mb-4 md:mb-5 pb-3 border-b border-gray-200/60 shrink-0">
+              <h3 class="font-bold text-gray-800 text-base md:text-lg">Pilih Unit Genset</h3>
             </div>
 
-            <!-- Loading State -->
             <div v-if="isFetchingProducts" class="flex-1 flex flex-col items-center justify-center">
               <Loader2 class="w-10 h-10 animate-spin text-blue-600 mb-3" />
-              <p class="text-sm text-gray-500 font-medium">Memuat produk rental...</p>
+              <p class="text-sm text-gray-500 font-medium tracking-tight">Menghubungkan ke katalog...</p>
             </div>
 
-            <!-- Error State -->
-            <div v-else-if="fetchError" class="flex-1 flex flex-col items-center justify-center p-4">
+            <div v-else-if="fetchError" class="flex-1 flex flex-col items-center justify-center p-4 text-center">
               <AlertCircle class="w-12 h-12 text-red-500 mb-3" />
-              <p class="text-sm text-red-600 font-medium text-center">{{ fetchError }}</p>
-              <button @click="fetchRentalProducts" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+              <p class="text-sm text-red-600 font-bold mb-1">Gagal Memuat Data</p>
+              <p class="text-xs text-gray-500 mb-4">{{ fetchError }}</p>
+              <button @click="fetchRentalProducts" class="px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition-all shadow-md">
                 Coba Lagi
               </button>
             </div>
 
-            <!-- Empty State -->
             <div v-else-if="allProducts.length === 0" class="flex-1 flex flex-col items-center justify-center">
               <ShoppingCart class="w-16 h-16 text-gray-300 mb-3" />
-              <p class="text-sm text-gray-500">Belum ada produk rental tersedia</p>
+              <p class="text-sm text-gray-500">Katalog rental belum tersedia</p>
             </div>
 
-            <!-- Products List -->
-            <div v-else class="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar relative min-h-0" @scroll="handleScroll">
-              <div v-for="product in visibleProducts" :key="product.id" class="bg-white p-3 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex gap-3 items-center group product-item">
-                <div class="w-20 h-20 shrink-0 bg-gray-100 rounded-lg overflow-hidden border border-gray-100">
-                  <img :src="product.image" :alt="product.name" class="w-full h-full object-cover" onerror="this.src='/genset.png'" />
+            <div v-else class="flex-1 overflow-y-auto pr-1 md:pr-2 custom-scrollbar relative min-h-0" @scroll="handleScroll">
+              <div class="grid grid-cols-2 md:grid-cols-1 gap-2 md:gap-3 mb-4">
+                <div 
+                  v-for="product in visibleProducts" 
+                  :key="product.id" 
+                  class="bg-white p-2 md:p-3.5 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all flex flex-col md:flex-row gap-2 md:gap-4 items-center group product-item"
+                >
+                  <div class="w-full md:w-20 h-24 md:h-20 shrink-0 bg-gray-50 rounded-lg overflow-hidden border border-gray-100 p-1 group-hover:scale-105 transition-transform">
+                    <img :src="product.image" :alt="product.name" class="w-full h-full object-contain" onerror="this.src='/genset.png'" />
+                  </div>
+                  <div class="flex-1 min-w-0 text-center md:text-left">
+                    <h4 class="font-bold text-gray-800 text-[11px] md:text-sm group-hover:text-blue-600 transition-colors leading-tight mb-1 line-clamp-2 md:truncate">{{ product.name }}</h4>
+                    <div class="flex items-center justify-center md:justify-start gap-1.5">
+                      <span class="text-[10px] md:text-[11px] font-bold text-blue-600 bg-blue-50 px-1.5 md:py-0.5 rounded border border-blue-100 whitespace-nowrap">{{ product.price }} <span class="hidden md:inline">/ bln</span></span>
+                    </div>
+                  </div>
+                  <button @click="toggleProductSelection(product)" :class="['h-8 w-8 md:h-11 md:w-11 shrink-0 flex items-center justify-center rounded-lg md:rounded-xl transition-all shadow-sm active:scale-90', isProductSelected(product.id) ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-100 hover:bg-blue-600 text-gray-600 hover:text-white']">
+                    <Check v-if="isProductSelected(product.id)" class="w-4 h-4 md:w-6 h-6" />
+                    <Plus v-else class="w-4 h-4 md:w-6 h-6" />
+                  </button>
                 </div>
-                <div class="flex-1">
-                  <h4 class="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">{{ product.name }}</h4>
-                  <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded mt-2 inline-block">{{ product.price }} / bln</span>
-                </div>
-                <button @click="toggleProductSelection(product)" :class="['h-10 w-10 flex items-center justify-center rounded-lg transition-all shadow-sm', isProductSelected(product.id) ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-gray-100 hover:bg-blue-600 text-gray-600 hover:text-white active:scale-90']">
-                  <Check v-if="isProductSelected(product.id)" class="w-6 h-6" />
-                  <Plus v-else class="w-6 h-6" />
-                </button>
               </div>
-              <div v-if="isLoadingProducts" class="flex justify-center items-center py-4"><Loader2 class="w-6 h-6 animate-spin text-blue-600" /><span class="ml-2 text-sm text-gray-500 font-medium">Memuat produk lainnya...</span></div>
-              <div v-if="!isLoadingProducts && visibleProducts.length >= allProducts.length" class="text-center py-4 text-xs text-gray-400 font-medium">Semua produk telah ditampilkan</div>
+              
+              <div v-if="isLoadingProducts" class="flex justify-center items-center py-4"><Loader2 class="w-6 h-6 animate-spin text-blue-600" /><span class="ml-2 text-xs md:text-sm text-gray-500 font-medium">Memuat produk lainnya...</span></div>
+              <div v-if="!isLoadingProducts && visibleProducts.length >= allProducts.length" class="text-center py-4 text-[10px] md:text-xs text-gray-400 font-medium">Semua produk telah ditampilkan</div>
             </div>
 
-            <!-- Consultation Checkbox -->
             <div class="p-4 border-t border-gray-200 bg-blue-50/50 mt-auto">
                 <label class="flex items-start gap-3 cursor-pointer group">
                     <div class="relative flex items-center">
@@ -626,7 +708,7 @@ export default {
                         <Check class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 peer-checked:opacity-100 w-3.5 h-3.5" />
                     </div>
                     <div class="text-sm text-gray-700 select-none">
-                        <span class="font-medium block text-gray-900 group-hover:text-blue-700 transition-colors">Bingung pilih kapasitas / Unit tidak ada?</span>
+                        <span class="font-medium block text-gray-900 group-hover:text-blue-700 transition-colors">Bingung pilih unit genset ?</span>
                         <span class="text-xs text-gray-500">Centang ini untuk konsultasi & rekomendasi daya dari tim ahli kami.</span>
                     </div>
                 </label>
@@ -672,7 +754,7 @@ export default {
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Klien <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Client <span class="text-red-500">*</span></label>
                 <div class="relative">
                   <select v-model="serviceForm.tenantType" @change="validateServiceField('tenantType')" @blur="clearServiceError('tenantType')" :class="['w-full border rounded-lg px-4 py-2.5 focus:outline-none text-sm appearance-none cursor-pointer bg-gray-50 focus:bg-white', serviceErrors.tenantType ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500']">
                     <option disabled value="" hidden>Pilih Tipe</option>
@@ -699,7 +781,7 @@ export default {
               </div>
 
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Nama Unit / Barang <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nama Unit & Kapasitas <span class="text-red-500">*</span></label>
                 <input v-model="serviceForm.unitType" @input="validateServiceField('unitType')" @blur="clearServiceError('unitType')" type="text" placeholder="Contoh: Genset 10kVA" :class="['w-full border rounded-lg px-4 py-2.5 focus:outline-none text-sm bg-gray-50 focus:bg-white', serviceErrors.unitType ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500']">
                 <p v-if="serviceErrors.unitType" class="text-red-500 text-xs mt-1">Jenis unit wajib diisi</p>
               </div>
@@ -732,7 +814,6 @@ export default {
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>
                 </button>
               </div>
-
             </form>
           </div>
         </div>
@@ -762,6 +843,12 @@ export default {
 .animate-fade-in-down { animation: fadeInDown 0.3s ease-out forwards; }
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-bottom { background: #cbd5e1; border-radius: 4px; }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+}
 </style>

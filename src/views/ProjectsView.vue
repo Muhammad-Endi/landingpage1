@@ -327,7 +327,7 @@ export default {
                   v-for="option in categoryOptions"
                   :key="option.value"
                   @click="selectCategory(option.value)"
-                  class="flex items-center gap-2 w-full px-4 py-3 text-sm text-gray-700 text-left bg-white transition-all hover:bg-gray-50"
+                  class="flex items-center gap-2 w-full px-4 py-3 text-sm text-gray-700 text-left bg-white transition-all"
                   :class="activeTheme.btnHover"
                 >
                   <component :is="option.icon" class="w-4 h-4 opacity-70" />

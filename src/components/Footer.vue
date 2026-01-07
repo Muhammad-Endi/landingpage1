@@ -10,13 +10,13 @@ export default {
       currentYear: new Date().getFullYear(),
       quickLinks: [
         { label: 'Beranda', href: '/' },
-        { label: 'Tentang', href: '/about' },
-        { label: 'Produk', href: '/catalog' },
-        { label: 'Proyek', href: '/projects' },
-        { label: 'Kontak', href: '/contact' },
+        { label: 'Tentang', href: '/tentang' },
+        { label: 'Produk', href: '/produk' },
+        { label: 'Proyek', href: '/proyek' },
+        { label: 'Kontak', href: '/kontak' },
       ],
       services: [
-        'Rewinding Elektro motor 1 & 3 phase',
+        'Service Rewinding Elektromotor 1 & 3 phase',
         'Service Genset',
         'Penjualan Genset',
         'Sewa Genset',
@@ -69,11 +69,11 @@ export default {
             </div>
           </div>
           <p class="text-gray-400 leading-relaxed mb-4 text-left">
-            Spesialis Rewinding Elektro motor 1 & 3 phase dan layanan service, penjualan, serta penyewaan genset.
+            Spesialis Rewinding Elektromotor 1 & 3 phase dan layanan service, penjualan serta penyewaan genset.
           </p>
         </div>
 
-        <div>
+        <div class="lg:pl-18">
           <h4 class="text-white font-bold text-lg mb-4">Menu</h4>
           <ul class="space-y-2">
             <li v-for="(link, index) in quickLinks" :key="index">
@@ -87,7 +87,7 @@ export default {
           </ul>
         </div>
 
-        <div>
+        <div class="lg:pl-8">
           <h4 class="text-white font-bold text-lg mb-4">Layanan</h4>
           <ul class="space-y-2">
             <li v-for="(service, index) in services" :key="index" class="text-gray-400">
@@ -96,7 +96,7 @@ export default {
           </ul>
         </div>
 
-        <div>
+        <div class="lg:pl-8">
           <h4 class="text-white font-bold text-lg mb-4">Kontak</h4>
           <ul class="space-y-3">
             <li class="flex items-start space-x-3">

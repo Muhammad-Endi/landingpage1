@@ -271,7 +271,7 @@ export default {
 
             <div class="order-3">
               <p class="text-base sm:text-lg text-gray-600 leading-relaxed mb-3 sm:mb-6 text-justify">
-                Berdiri sejak 2009, <strong>Sinar Elektro Sejahtera</strong> adalah workshop spesialis yang bergerak di bidang <em>Rewinding</em> Elektromotor 1 & 3 Phase. Selain itu kami juga menyediakan layanan service, penjualan, serta penyewaan genset.
+                Berdiri sejak 2009, <strong>Sinar Elektro Sejahtera</strong> adalah workshop spesialis yang bergerak di bidang service <em>Rewinding</em> Elektromotor 1 & 3 Phase. Selain itu kami juga menyediakan layanan service genset, penjualan, serta penyewaan genset.
               </p>
               <p class="text-base sm:text-lg text-gray-600 leading-relaxed mb-6 sm:mb-8">
                 Melalui teknologi presisi dan teknisi ahli, kami menjamin mesin kembali ke performa maksimal pabrikan.
@@ -506,7 +506,7 @@ export default {
                 </div>
 
                 <div>
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Nama Unit / Barang <span class="text-red-500">*</span></label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Nama Unit & Kapasitas <span class="text-red-500">*</span></label>
                   <input v-model="serviceForm.unitType" @input="validateServiceField('unitType')" @blur="clearServiceError('unitType')" type="text" placeholder="Contoh: Genset 10kVA" :class="['w-full border rounded-lg px-4 py-2.5 focus:outline-none text-sm bg-gray-50 focus:bg-white', serviceErrors.unitType ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500']">
                   <p v-if="serviceErrors.unitType" class="text-red-500 text-xs mt-1">Jenis unit wajib diisi</p>
                 </div>
